@@ -121,6 +121,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | TypeScript 6.0 | Langage front-end | [typescriptlang.org](https://www.typescriptlang.org/docs/) | Typer le code du front | Langage natif d'Angular ; version imposée par Angular 22 (>= 6.0 < 6.1) |
 | Java 21 (LTS) | Langage back-end | [dev.java](https://dev.java) | Développer l'API | Java imposé par ORION ; version LTS supportée jusqu'en septembre 2028 |
 | Spring Boot 4.1 (inclut Spring Core) | Framework back-end | [docs.spring.io/spring-boot](https://docs.spring.io/spring-boot/) | Fournir l'IoC / DI et accélérer la configuration de l'API | Spring Core obligatoire, Spring Boot recommandé ; 4.1 = seule version avec un support OSS durable (juillet 2027) |
+| Services Angular + signals | Gestion de l'état front-end | [angular.dev/guide/signals](https://angular.dev/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Approche native d'Angular, suffisante pour l'état réduit du MVP ; NgRx étudié et écarté (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
 | Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
 
 #### Avantages et inconvénients
@@ -131,6 +132,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | TypeScript | Erreurs détectées à la compilation ; modèles partagés entre services et composants | Étape de compilation ; types à maintenir face à l'API |
 | Java | Écosystème mature, typage fort, large communauté | Code plus verbeux que Kotlin ou des langages de script |
 | Spring Boot | Auto-configuration, serveur embarqué, starters (Web, Data, Security) ; IoC et DI au service des principes SOLID | Configuration implicite parfois difficile à diagnostiquer ; démarrage et mémoire plus lourds qu'un micro-framework |
+| Services + signals | Natif Angular, aucune dépendance, très peu de code ; mise à jour automatique de l'interface | Pas de structure imposée par un outil ; pas d'historique d'état type Redux DevTools |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
 
 #### Choix des versions
@@ -159,6 +161,32 @@ Sources : [endoflife.date – Spring Boot](https://endoflife.date/spring-boot), 
 - Spring Boot 4 et Angular 22 diffèrent des nombreux tutoriels écrits pour Spring Boot 2 / 3 et Angular à base de `NgModule` : les exemples trouvés en ligne doivent être adaptés.
 - Le thème Angular Material passe au système Material 3 (thème `azure-blue` par défaut), à ajuster aux maquettes.
 
+#### Gestion de l'état front-end
+
+**Décision (11/11/2026) :** services Angular injectables (`providedIn: 'root'`) exposant des **signals**, sans bibliothèque de gestion d'état.
+
+L'état partagé du MVP est réduit : l'utilisateur connecté, ses abonnements (partagés entre la page des thèmes et la page profil) et le fil d'articles avec son tri.
+
+| Critère | Services + signals | NgRx Store (Redux) | NgRx SignalStore |
+|---------|--------------------|--------------------|------------------|
+| Principe | Un service par domaine expose des signals ; les composants les lisent | Store global unique ; l'état change uniquement via des actions traitées par des reducers ; effets de bord dans des effects | Un store par domaine, déclaré avec `signalStore()` (état, méthodes, valeurs calculées), exposé en signals |
+| Code par fonctionnalité | ~1 fichier | ~4 fichiers (actions, reducer, effects, selectors) | ~1 fichier |
+| Dépendance | Aucune (Angular natif) | `@ngrx/store`, `@ngrx/effects` | `@ngrx/signals` |
+| Structure imposée | Aucune : conventions à fixer soi-même | Très forte, flux unidirectionnel prévisible | Moyenne, structure commune à tous les stores |
+| Débogage | Outils Angular standard | Redux DevTools (historique et rejeu des actions) | Redux DevTools via une extension |
+| Courbe d'apprentissage | Faible | Élevée (RxJS, actions, effects) | Moyenne |
+| Adapté à un MVP de 5 écrans | Oui | Surdimensionné | Oui |
+
+**Justification**
+- Les signals sont le mécanisme de réactivité natif d'Angular, et un service exposant des signals est le pattern présenté par la documentation officielle.
+- Pour un état de cette taille, NgRx ajouterait une dépendance et une couche d'abstraction sans bénéfice concret, contraire à l'objectif d'un MVP simple.
+- Le choix est réversible : les deux approches reposant sur les signals, une migration vers NgRx SignalStore se ferait fonctionnalité par fonctionnalité, avec peu d'impact sur les composants.
+
+**Inconvénients assumés**
+- Aucune structure imposée par un outil : les conventions (un service par domaine, signals en lecture seule exposés via `asReadonly()`, modification uniquement par les méthodes du service) doivent être respectées par discipline.
+- Pas d'historique des changements d'état comme avec les Redux DevTools.
+- Écart avec la recommandation NgRx d'OpenClassrooms, assumé et justifié ci-dessus.
+
 #### Choix à décider
 
 Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiquée est un point de départ, pas un choix.
@@ -170,7 +198,8 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [ ] **Architecture back-end** : découpage en couches, organisation des packages, DTO et mapping.
 - [ ] **Validation des données** : règles du mot de passe côté front et côté back.
 - [ ] **Bibliothèque d'interface** — piste : Angular Material, déjà configuré.
-- [ ] **Architecture front-end** : organisation des modules, composants, services et gestion de l'état.
+- [x] **Gestion de l'état front-end** : services + signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
+- [ ] **Architecture front-end** : organisation des dossiers, composants et services.
 - [ ] **Outils de build** : Maven (en place côté back) et Angular CLI (en place côté front).
 - [ ] **Tests** : frameworks de tests unitaires et d'intégration, back et front.
 - [ ] **Documentation de l'API** : format et outil.
