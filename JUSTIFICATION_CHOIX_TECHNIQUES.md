@@ -122,6 +122,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Java 21 (LTS) | Langage back-end | [dev.java](https://dev.java) | Développer l'API | Java imposé par ORION ; version LTS supportée jusqu'en septembre 2028 |
 | Spring Boot 4.1 (inclut Spring Core) | Framework back-end | [docs.spring.io/spring-boot](https://docs.spring.io/spring-boot/) | Fournir l'IoC / DI et accélérer la configuration de l'API | Spring Core obligatoire, Spring Boot recommandé ; 4.1 = seule version avec un support OSS durable (juillet 2027) |
 | Services Angular + signals | Gestion de l'état front-end | [angular.dev/guide/signals](https://angular.dev/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Approche native d'Angular, suffisante pour l'état réduit du MVP ; NgRx étudié et écarté (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
+| Vitest | Tests unitaires front-end | [vitest.dev](https://vitest.dev) · [angular.dev/guide/testing](https://angular.dev/guide/testing) | Tester les composants et services Angular, mesurer la couverture | Lanceur de tests officiel et par défaut d'Angular 22, déjà configuré ; Jest étudié et écarté (voir [Tests unitaires front-end](#tests-unitaires-front-end)) |
 | Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
 
 #### Avantages et inconvénients
@@ -133,6 +134,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Java | Écosystème mature, typage fort, large communauté | Code plus verbeux que Kotlin ou des langages de script |
 | Spring Boot | Auto-configuration, serveur embarqué, starters (Web, Data, Security) ; IoC et DI au service des principes SOLID | Configuration implicite parfois difficile à diagnostiquer ; démarrage et mémoire plus lourds qu'un micro-framework |
 | Services + signals | Natif Angular, aucune dépendance, très peu de code ; mise à jour automatique de l'interface | Pas de structure imposée par un outil ; pas d'historique d'état type Redux DevTools |
+| Vitest | Intégré à `ng test` et maintenu par Angular ; rapide (esbuild, mode watch ciblé) ; syntaxe compatible avec Jest | Plus récent que Jest : moins de tutoriels Angular existants l'utilisent |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
 
 #### Choix des versions
@@ -187,6 +189,29 @@ L'état partagé du MVP est réduit : l'utilisateur connecté, ses abonnements (
 - Pas d'historique des changements d'état comme avec les Redux DevTools.
 - Écart avec la recommandation NgRx d'OpenClassrooms, assumé et justifié ci-dessus.
 
+#### Tests unitaires front-end
+
+**Décision (11/11/2026) :** **Vitest** (avec `jsdom`), lancé par `ng test` via le builder officiel `@angular/build:unit-test`.
+
+L'existant utilisait Karma + Jasmine (configuration par défaut d'Angular 14), aujourd'hui déprécié par Angular. Aucune configuration Jest n'existait dans le projet.
+
+| Critère | Vitest | Jest | Karma + Jasmine |
+|---------|--------|------|-----------------|
+| Support dans Angular 22 | Officiel, lanceur par défaut | Non officiel : builder communautaire `@angular-builders/jest` (le builder Jest d'Angular est resté expérimental) | Encore supporté, mais déprécié |
+| Configuration dans le projet | Déjà en place depuis la régénération | À installer et configurer (`jest`, `jest-preset-angular`, `angular.json`, `jest.config.ts`) | Supprimée lors de la régénération |
+| Moteur | Vite / esbuild, modules ES et TypeScript natifs | CommonJS, transformation préalable du TypeScript | Vrai navigateur (Chrome) |
+| Vitesse | Rapide, ne relance que les tests touchés en mode watch | Correcte | Plus lente (lancement d'un navigateur) |
+| Syntaxe | `describe` / `it` / `expect`, mocks `vi.fn()` | `describe` / `it` / `expect`, mocks `jest.fn()` | `describe` / `it` / `expect`, espions `jasmine.createSpy()` |
+
+**Justification**
+- Les directives recommandent Jest (étape 7 : « Utiliser les outils de test recommandés : JUnit, Jest, Cypress »). Angular a depuis fait de Vitest son lanceur officiel : c'est l'outil présenté par la documentation Angular.
+- La syntaxe étant quasi identique à celle de Jest, les bonnes pratiques visées (nommage, isolation, Arrange–Act–Assert, couverture) s'appliquent de la même façon.
+- Vitest évite d'ajouter et de maintenir une configuration communautaire, qui risquerait de casser à chaque montée de version d'Angular.
+
+**Inconvénients assumés**
+- Écart avec la recommandation Jest des directives, justifié ci-dessus.
+- Outil plus récent : une partie des ressources Angular en ligne montre encore Jest ou Karma.
+
 #### Choix à décider
 
 Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiquée est un point de départ, pas un choix.
@@ -201,7 +226,8 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Gestion de l'état front-end** : services + signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
 - [ ] **Architecture front-end** : organisation des dossiers, composants et services.
 - [ ] **Outils de build** : Maven (en place côté back) et Angular CLI (en place côté front).
-- [ ] **Tests** : frameworks de tests unitaires et d'intégration, back et front.
+- [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
+- [ ] **Tests back et e2e** : tests unitaires et d'intégration back, tests end-to-end, outil de couverture back.
 - [ ] **Documentation de l'API** : format et outil.
 - [ ] **Conventions de code** : formatage, nommage, messages de commit.
 
@@ -225,7 +251,8 @@ Représentation visuelle des entités et de leurs relations : **À compléter**.
 
 | Type de test | Outil / framework | Portée | Résultats |
 |--------------|-------------------|--------|-----------|
-| Test unitaire | | | |
+| Test unitaire (front) | Vitest + jsdom | Composants et services Angular | |
+| Test unitaire (back) | | | |
 | Test d'intégration | | | |
 | Test e2e | | | |
 
