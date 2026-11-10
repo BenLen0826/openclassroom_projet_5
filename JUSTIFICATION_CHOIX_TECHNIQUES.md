@@ -1,0 +1,215 @@
+# Documentation et rapport du projet MDD
+
+| Auteur | Version | Date |
+|--------|---------|------|
+| [Nom et prénom] | 0.0.1 | 10/11/2026 |
+
+> Document de travail complété au fil du projet. Un élément non encore tranché est marqué **À décider**, une section non encore traitée **À compléter**.
+
+## Sommaire
+
+1. [Présentation générale du projet](#1-présentation-générale-du-projet)
+2. [Architecture et conception technique](#2-architecture-et-conception-technique)
+3. [Tests, performance et qualité](#3-tests-performance-et-qualité)
+4. [Documentation utilisateur et supervision](#4-documentation-utilisateur-et-supervision)
+5. [Annexes](#5-annexes)
+
+---
+
+## 1. Présentation générale du projet
+
+### 1.1 Objectifs du projet
+
+ORION développe **MDD (Monde de Dév)**, un réseau social destiné aux développeurs. Son but est d'aider les développeurs en recherche d'emploi grâce à la mise en relation et à la collaboration entre pairs. À terme, MDD pourra devenir un vivier de recrutement pour les entreprises.
+
+Avant une ouverture au grand public, ORION teste le concept avec un **MVP déployé en interne**. Ce MVP permet de :
+
+- s'abonner à des thèmes de programmation (JavaScript, Java, Python, Web3…) ;
+- consulter un fil d'actualité chronologique des articles de ces thèmes ;
+- écrire des articles et les commenter.
+
+Le MVP ne comporte pas de back-office (zone d'administration).
+
+### 1.2 Périmètre fonctionnel
+
+Statuts possibles : **Terminée** / **En cours** / **À venir**.
+
+| Fonctionnalités | Description | Statut |
+|-----------------|-------------|--------|
+| Accueil non connecté | Accès au formulaire de connexion et d'inscription | À venir |
+| Inscription | E-mail, nom d'utilisateur et mot de passe ; validation du mot de passe (8 caractères min., chiffre, minuscule, majuscule, caractère spécial) | À venir |
+| Connexion | Par e-mail ou nom d'utilisateur + mot de passe ; connexion persistante entre les sessions | À venir |
+| Déconnexion | Fin de la session de l'utilisateur | À venir |
+| Profil | Consultation (e-mail, nom d'utilisateur, abonnements) et modification (e-mail, nom d'utilisateur, mot de passe) | À venir |
+| Liste des thèmes | Tous les thèmes, abonné ou non | À venir |
+| Abonnement | S'abonner depuis la page des thèmes ; le bouton devient inactif et affiche « Déjà abonné » | À venir |
+| Désabonnement | Depuis la page de profil | À venir |
+| Fil d'actualité | Articles des thèmes suivis, triables du plus récent au plus ancien et inversement | À venir |
+| Création d'article | Choix du thème, titre et contenu ; auteur et date définis automatiquement | À venir |
+| Consultation d'article | Thème, titre, auteur, date, contenu et commentaires | À venir |
+| Commentaires | Ajout d'un commentaire à un article (non récursif) ; auteur et date définis automatiquement | À venir |
+| Responsive | Chaque écran s'adapte au mobile et à l'ordinateur | À venir |
+
+---
+
+## 2. Architecture et conception technique
+
+### 2.1 Schéma global de l'architecture
+
+Le MVP est découpé en **deux applications distinctes** : un front-end Angular et un back-end Spring Boot qui expose une API et gère la base de données.
+
+```mermaid
+flowchart LR
+    U([Utilisateur<br/>navigateur]) --> F
+    F["<b>Front-end Angular</b><br/>Application web (SPA)<br/>TypeScript"]
+    B["<b>Back-end Spring Boot</b><br/>API exposée au front<br/>Logique métier<br/>Java, Spring Core (IoC, DI)"]
+    D[("<b>Base de données</b><br/>Relationnelle<br/>Moteur à décider<br/>(piste : MySQL)")]
+    F <-- "API sécurisée<br/>(mécanisme à décider)" --> B
+    B <-- "Persistance" --> D
+```
+
+**Légende**
+- **Front-end** : l'interface affichée dans le navigateur ; il ne communique qu'avec l'API.
+- **Back-end** : expose l'API, applique les règles métier et la sécurité ; il est le seul à accéder à la base de données.
+- **Base de données** : stocke les utilisateurs, thèmes, abonnements, articles et commentaires.
+- **Services tiers** : aucun prévu pour le MVP.
+
+**Organisation du repository** (un seul repository GitHub, imposé par ORION) :
+
+```
+projet_5/
+├── back/    # API Spring Boot (Maven)
+├── front/   # Application Angular (Angular CLI)
+└── README.md
+```
+
+Organisation interne des modules, dossiers et conventions : **À décider** (voir [Choix à décider](#choix-à-décider)).
+
+### 2.2 Choix techniques
+
+#### Contraintes imposées
+
+Ces contraintes viennent des spécifications fonctionnelles et du document de contraintes techniques d'ORION. Tous les choix doivent les respecter.
+
+| Domaine | Contrainte |
+|---------|------------|
+| Architecture | Back-end distinct du front-end, communication par une API |
+| Sécurité | Interaction front / back sécurisée (méthode libre) |
+| Conception | Respect des principes SOLID |
+| Back-end | Java / Spring, Spring Core obligatoire (IoC, DI), Spring Boot recommandé |
+| Modules | Un module Spring est prioritaire sur une librairie tierce (ex. Spring Data plutôt qu'EclipseLink) |
+| Front-end | TypeScript / Angular, Angular CLI recommandé, bonnes pratiques de sécurité Angular |
+| Code | Git et GitHub, un seul repository pour tout le projet |
+| Ergonomie | Écrans responsive, maquettes de la designer respectées |
+
+#### Existant repris
+
+Le projet a été initialisé par une collègue développeuse. Ce socle est conservé tant qu'un choix ne justifie pas de le modifier.
+
+| Partie | Ce qui existe |
+|--------|---------------|
+| Back-end (`back/`) | Spring Boot 2.7.3, Java 11, Maven ; dépendances `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `mysql-connector-java`, `spring-boot-starter-test` |
+| Front-end (`front/`) | Angular 14 (CLI 14.1.3), TypeScript 4.7, Angular Material 14 configuré ; une page `home` et un routing de base |
+
+Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à Spring Data JDBC).
+
+#### Tableau des choix
+
+| Éléments choisis | Type | Lien documentation | Objectif du choix | Justification |
+|------------------|------|--------------------|-------------------|---------------|
+| Angular | Framework front-end | [angular.dev](https://angular.dev) | Structurer l'application web : composants, routing, formulaires, appels HTTP | Imposé par ORION |
+| TypeScript | Langage front-end | [typescriptlang.org](https://www.typescriptlang.org/docs/) | Typer le code du front | Langage natif d'Angular |
+| Java | Langage back-end | [dev.java](https://dev.java) | Développer l'API | Imposé par ORION |
+| Spring Boot (inclut Spring Core) | Framework back-end | [docs.spring.io/spring-boot](https://docs.spring.io/spring-boot/) | Fournir l'IoC / DI et accélérer la configuration de l'API | Spring Core obligatoire, Spring Boot recommandé ; déjà initialisé dans le projet |
+| Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
+
+#### Avantages et inconvénients
+
+| Choix | Avantages | Inconvénients |
+|-------|-----------|---------------|
+| Angular | Framework complet (routing, formulaires réactifs, client HTTP, intercepteurs) ; protection XSS intégrée aux templates | Courbe d'apprentissage plus raide que React ou Vue ; bundle plus lourd |
+| TypeScript | Erreurs détectées à la compilation ; modèles partagés entre services et composants | Étape de compilation ; types à maintenir face à l'API |
+| Java | Écosystème mature, typage fort, large communauté | Code plus verbeux que Kotlin ou des langages de script |
+| Spring Boot | Auto-configuration, serveur embarqué, starters (Web, Data, Security) ; IoC et DI au service des principes SOLID | Configuration implicite parfois difficile à diagnostiquer ; démarrage et mémoire plus lourds qu'un micro-framework |
+| Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
+
+#### Choix à décider
+
+Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiquée est un point de départ, pas un choix.
+
+- [ ] **Versions** : conserver Java 11, Spring Boot 2.7.3 et Angular 14, ou monter de version.
+- [ ] **Base de données** — piste : MySQL (relationnelle).
+- [ ] **Accès aux données** — piste : Spring Data JPA plutôt que Spring Data JDBC.
+- [ ] **Authentification et sécurisation de l'API** : mécanisme (session, JWT…), hachage des mots de passe, persistance de la connexion. Module Spring à privilégier : Spring Security.
+- [ ] **Architecture back-end** : découpage en couches, organisation des packages, DTO et mapping.
+- [ ] **Validation des données** : règles du mot de passe côté front et côté back.
+- [ ] **Bibliothèque d'interface** — piste : Angular Material, déjà configuré.
+- [ ] **Architecture front-end** : organisation des modules, composants, services et gestion de l'état.
+- [ ] **Outils de build** : Maven (en place côté back) et Angular CLI (en place côté front).
+- [ ] **Tests** : frameworks de tests unitaires et d'intégration, back et front.
+- [ ] **Documentation de l'API** : format et outil.
+- [ ] **Conventions de code** : formatage, nommage, messages de commit.
+
+### 2.3 API et schémas de données
+
+**À compléter** une fois l'API conçue.
+
+| Endpoint | Méthode | Description | Corps / Réponse |
+|----------|---------|-------------|-----------------|
+| | | | |
+
+Représentation visuelle des entités et de leurs relations : **À compléter**.
+
+---
+
+## 3. Tests, performance et qualité
+
+### 3.1 Stratégie de test
+
+**À compléter** (outils à décider).
+
+| Type de test | Outil / framework | Portée | Résultats |
+|--------------|-------------------|--------|-----------|
+| Test unitaire | | | |
+| Test d'intégration | | | |
+| Test e2e | | | |
+
+### 3.2 Rapport de performance et optimisation
+
+**À compléter** : résultats d'audit (Lighthouse, SonarQube…), points d'amélioration identifiés, actions correctives appliquées.
+
+### 3.3 Revue technique
+
+**À compléter**.
+
+- **Points forts** :
+- **Points à améliorer** :
+- **Actions correctives appliquées** :
+
+---
+
+## 4. Documentation utilisateur et supervision
+
+### 4.1 FAQ utilisateur
+
+**À compléter** une fois les fonctionnalités livrées.
+
+**Q :** …
+**R :** …
+
+### 4.2 Supervision et tâches déléguées à l'IA
+
+| Tâche déléguée | Outil / collaborateur | Objectif | Vérification effectuée |
+|----------------|-----------------------|----------|------------------------|
+| Synthèse du contexte, des spécifications et des contraintes du projet | Claude Code | Disposer d'un résumé de travail exhaustif | [À compléter] |
+| Structure initiale de ce document à partir du template | Claude Code | Gagner du temps sur la mise en forme | [À compléter] |
+
+---
+
+## 5. Annexes
+
+- [ ] Captures d'écran de l'UI et vues principales
+- [ ] Analyse des besoins front-end (liens avec les spécifications et les maquettes)
+- [ ] Définition des données (schémas, formats, règles de validation et sécurisation)
+- [ ] Rapports de couverture et de tests
+- [ ] Rapport de revue technique
