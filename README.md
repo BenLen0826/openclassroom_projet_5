@@ -2,7 +2,7 @@
 
 ## Front
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.1.3.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 22.2.6.
 
 Don't forget to install your node_modules before starting (`npm install`).
 
@@ -16,7 +16,7 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 
 ### Where to start
 
-As you may have seen if you already started the app, a simple home page containing a logo, a title and a button is available. If you take a look at its code (in the `home.component.html`) you will see that an external UI library is already configured in the project.
+As you may have seen if you already started the app, a simple home page containing a logo, a title and a button is available. If you take a look at its code (in `src/app/pages/home/home.html`) you will see that an external UI library is already configured in the project.
 
 This library is `@angular/material`, it's one of the most famous in the angular ecosystem. As you can see on their docs (https://material.angular.io/), it contains a lot of highly customizable components that will help you design your interfaces quickly.
 
