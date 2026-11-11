@@ -54,6 +54,8 @@ L'URL de l'API est définie dans `src/environments/environment.development.ts` (
 | `npx ng test --watch=false --coverage` | Lance les tests une fois et génère le rapport de couverture `coverage/` |
 | `npm run lint` | Analyse le code avec ESLint (TypeScript, Angular, accessibilité des templates) |
 | `npm run build` | Compile l'application dans `dist/` |
+| `npm run cypress:run` | Lance les tests end-to-end Cypress dans Chrome, sans interface (l'application doit tourner : `npm start` dans un autre terminal) |
+| `npm run cypress:open` | Ouvre l'interface de Cypress pour lancer et suivre les tests pas à pas |
 
 ### Development server
 
