@@ -70,12 +70,13 @@ flowchart LR
         C --> S --> R
     end
     D[("<b>MySQL</b><br/>Base relationnelle")]
-    F <-- "API REST · HTTP / JSON<br/>(sécurisation à décider)" --> C
+    F <-- "API REST · HTTP / JSON<br/>Authorization: Bearer JWT" --> C
     R <-- "JPA / Hibernate" --> D
 ```
 
 **Légende**
 - **Front-end** : l'interface affichée dans le navigateur ; il ne communique qu'avec l'API.
+- **Sécurité** : Spring Security vérifie le JWT de chaque requête avant qu'elle atteigne un contrôleur (sauf inscription et connexion).
 - **controller** : reçoit les requêtes HTTP, valide les données reçues, renvoie des DTO en JSON. Aucune règle métier.
 - **service** : applique les règles métier (auteur et date automatiques, abonnements, tri du fil…).
 - **repository** : accès aux données via Spring Data JPA ; seule couche qui parle à la base.
@@ -150,6 +151,9 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Architecture en couches, packages par couche | Architecture back-end | [Spring Boot – Structuring your code](https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html) | Séparer les responsabilités : HTTP, métier, accès aux données | Standard Spring, lisible, applique SOLID ; adaptée à 5 entités (voir [Architecture logicielle](#architecture-logicielle)) |
 | MySQL | Base de données | [dev.mysql.com/doc](https://dev.mysql.com/doc/) | Stocker les données relationnelles du MVP | Données fortement liées ; choix initial d'Heidi, déjà installé et configuré dans le `pom.xml` (voir [Base de données et accès aux données](#base-de-données-et-accès-aux-données)) |
 | Spring Data JPA (Hibernate) | Accès aux données (ORM) | [docs.spring.io/spring-data/jpa](https://docs.spring.io/spring-data/jpa/reference/) | Associer les entités Java aux tables, générer les requêtes et le schéma | Module Spring prioritaire (contrainte) ; création de la base via l'ORM ; choix initial d'Heidi (voir [Base de données et accès aux données](#base-de-données-et-accès-aux-données)) |
+| Spring Security | Sécurité back-end | [docs.spring.io/spring-security](https://docs.spring.io/spring-security/reference/) | Protéger l'API : authentification, routes publiques / protégées, CORS | Module Spring prioritaire (contrainte) ; standard de la sécurité dans Spring (voir [Sécurité et authentification](#sécurité-et-authentification)) |
+| JWT via Spring Security OAuth2 Resource Server | Authentification | [Spring Security – OAuth2 Resource Server JWT](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html) | Authentifier chaque requête par un token signé (HS256), valable 7 jours | API sans état ; connexion persistante sans stocker le mot de passe ; module Spring plutôt que la librairie jjwt (voir [Sécurité et authentification](#sécurité-et-authentification)) |
+| BCrypt | Hachage des mots de passe | [Spring Security – Password Storage](https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html) | Ne jamais stocker un mot de passe en clair | Algorithme de référence de Spring Security, sel intégré, coût réglable |
 | NgRx SignalStore | Gestion de l'état front-end | [ngrx.io/guide/signals](https://ngrx.io/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Suit la recommandation NgRx des directives, dans sa version légère basée sur les signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
 | Vitest | Tests unitaires front-end | [vitest.dev](https://vitest.dev) · [angular.dev/guide/testing](https://angular.dev/guide/testing) | Tester les composants et services Angular, mesurer la couverture | Lanceur de tests officiel et par défaut d'Angular 22, déjà configuré ; Jest étudié et écarté (voir [Tests unitaires front-end](#tests-unitaires-front-end)) |
 | Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
@@ -166,6 +170,9 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Architecture en couches | Responsabilités séparées, code lisible et testable couche par couche ; standard Spring | Le métier dépend des entités JPA ; risque de services « fourre-tout » si le projet grossit |
 | MySQL | Gratuit, très répandu, déjà installé ; relations et contraintes d'intégrité gérées par la base | Moins de fonctionnalités avancées que PostgreSQL (inutiles pour le MVP) |
 | Spring Data JPA | Relations gérées automatiquement ; requêtes générées depuis le nom des méthodes ; schéma créé par l'ORM | « Magie » à maîtriser : chargement paresseux, requêtes N+1 ; SQL généré moins visible |
+| Spring Security | Protection complète et éprouvée (filtres, CORS, en-têtes de sécurité) ; intégré à Spring Boot | Configuration dense, comportement par défaut parfois surprenant (tout est protégé) |
+| JWT (OAuth2 Resource Server) | API sans état ; connexion persistante ; vérification du token gérée par Spring, sans filtre écrit à la main | Token volé valable jusqu'à son expiration ; déconnexion uniquement côté client |
+| BCrypt | Lent par conception (résiste à la force brute) ; sel intégré ; standard Spring | Argon2 est plus récent et plus robuste (non nécessaire pour le MVP) |
 | NgRx SignalStore | Structure commune à tous les stores, peu de code ; basé sur les signals ; état séparé des appels HTTP | Dépendance supplémentaire ; API à apprendre, moins de ressources que le Store classique |
 | Vitest | Intégré à `ng test` et maintenu par Angular ; rapide (esbuild, mode watch ciblé) ; syntaxe compatible avec Jest | Plus récent que Jest : moins de tutoriels Angular existants l'utilisent |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
@@ -258,6 +265,62 @@ Les données de MDD sont fortement liées : un article a un auteur et un thème,
 - JPA permet de **créer la base via l'ORM**, comme demandé pour la mise en place de l'environnement, et gère les relations du modèle sans SQL manuel.
 - MySQL et JPA étaient les choix initiaux d'Heidi : les conserver évite de remettre en cause le socle sans gain.
 
+#### Sécurité et authentification
+
+**Décision (11/11/2026) :** **Spring Security** avec authentification par **JWT**, généré et vérifié par le module **OAuth2 Resource Server** ; mots de passe hachés avec **BCrypt**.
+
+Besoins à couvrir : interaction front / back sécurisée (contrainte), connexion par e-mail ou nom d'utilisateur, **connexion persistante entre les sessions**, règles du mot de passe (spécifications), sans surcomplexifier la sécurité d'un MVP interne (directives).
+
+**Mécanisme d'authentification**
+
+| Critère | **JWT** (retenu) | Basic Auth | Session serveur (cookie) |
+|---------|------------------|------------|--------------------------|
+| Principe | À la connexion, le back renvoie un token signé ; le front l'envoie dans l'en-tête `Authorization: Bearer …` à chaque requête | Identifiant et mot de passe (Base64) envoyés à chaque requête | Session en mémoire côté serveur, cookie `JSESSIONID` dans le navigateur |
+| Connexion persistante | Oui : token stocké côté front, valable jusqu'à son expiration | Impose de stocker le mot de passe côté front : à proscrire | Cookie de session perdu à la fermeture du navigateur (sauf « remember-me ») |
+| API sans état | Oui | Oui | Non |
+| Complexité | Moyenne | Faible | Moyenne (protection CSRF) |
+| Inconvénient principal | Token volé valable jusqu'à son expiration | Mot de passe circulant et stocké côté client | Peu adapté à une SPA et à une API REST |
+
+**Génération et vérification du token**
+
+| Critère | **Spring Security OAuth2 Resource Server** (retenu) | Librairie jjwt |
+|---------|-----------------------------------------------------|----------------|
+| Principe | Module officiel : vérification automatique du JWT à chaque requête ; génération avec le `JwtEncoder` (Nimbus) fourni | Librairie tierce : filtre de lecture et de vérification du token à écrire soi-même |
+| Avantages | Module Spring (contrainte) ; moins de code de sécurité écrit à la main | Très présente dans les tutoriels |
+| Inconvénients | Moins de tutoriels « débutant » | Filtre et gestion des erreurs à écrire et tester soi-même |
+
+Malgré son nom, ce module n'implique pas de serveur OAuth : il sert uniquement à vérifier des JWT. Le token est signé en **HS256** avec une clé secrète lue dans une **variable d'environnement**, jamais commitée.
+
+**Mots de passe**
+- Hachage avec **BCrypt** (`BCryptPasswordEncoder`).
+- Règles (8 caractères minimum, un chiffre, une minuscule, une majuscule, un caractère spécial) vérifiées **côté front** (retour immédiat) **et côté back** (le front peut être contourné).
+- Le mot de passe n'est jamais renvoyé par l'API, même haché, ni écrit dans les logs.
+
+**Côté front-end**
+
+| Sujet | Choix | Alternative écartée |
+|-------|-------|---------------------|
+| Stockage du token | `localStorage` : survit à la fermeture du navigateur, donc connexion persistante | Cookie `HttpOnly` : mieux protégé contre le vol par XSS, mais impose la gestion du CSRF et des cookies cross-origin, trop complexe pour le MVP. Le risque XSS est réduit par l'échappement automatique des templates Angular. |
+| Envoi du token | Intercepteur HTTP qui ajoute `Authorization: Bearer …` | Ajout manuel dans chaque service : répétitif, oublis possibles |
+| Routes protégées | Guard (`canActivate`) qui redirige vers la connexion | — |
+| Token expiré ou invalide | Réponse 401 : l'intercepteur déconnecte l'utilisateur et le redirige vers la connexion | — |
+| Déconnexion | Suppression du token côté front | Liste noire de tokens côté serveur : inutile pour le MVP |
+
+**Durée de validité du token :** **7 jours**, réglable dans la configuration, sans refresh token. Une durée courte (1 h) serait plus sûre mais imposerait un refresh token pour garder la connexion persistante, ce qui ajoute de la complexité.
+
+**Autorisations et protection de l'API**
+- Routes publiques : uniquement `POST /api/auth/register` et `POST /api/auth/login`. Toutes les autres exigent un token valide.
+- L'utilisateur courant est **toujours déduit du token** : pas d'identifiant dans les URL du profil ou des abonnements (`/api/users/me`), impossible de modifier les données d'un autre utilisateur.
+- L'auteur d'un article ou d'un commentaire vient du token, jamais du corps de la requête (règle « auteur défini automatiquement »).
+- **CSRF désactivé** : sans risque, le token passe par un en-tête et non par un cookie.
+- **CORS** limité à l'origine du front (`http://localhost:4200` en développement), configuré dans Spring Security.
+- Erreurs : message générique en cas d'échec de connexion (« identifiants invalides »), aucune trace technique renvoyée au client.
+
+**Inconvénients assumés**
+- Un token volé reste valable jusqu'à 7 jours ; la déconnexion ne l'invalide pas côté serveur.
+- Le `localStorage` est lisible par JavaScript : la protection repose sur l'absence de faille XSS.
+- Axes d'amélioration après le MVP : refresh token avec durée d'accès courte, cookie `HttpOnly`, liste de révocation.
+
 #### Gestion de l'état front-end
 
 **Décision (11/11/2026) :** **NgRx SignalStore** (`@ngrx/signals` 22, compatible avec Angular 22). Un premier choix de services + signals a été réévalué au profit de SignalStore pour suivre la recommandation NgRx des directives.
@@ -327,10 +390,10 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Architecture globale** : client-serveur, API REST (voir [Architecture logicielle](#architecture-logicielle)).
 - [x] **Base de données** : MySQL (voir [Base de données et accès aux données](#base-de-données-et-accès-aux-données)).
 - [x] **Accès aux données** : Spring Data JPA.
-- [ ] **Authentification et sécurisation de l'API** : mécanisme (session, JWT…), hachage des mots de passe, persistance de la connexion. Module Spring à privilégier : Spring Security.
+- [x] **Authentification et sécurisation de l'API** : Spring Security, JWT (OAuth2 Resource Server), BCrypt (voir [Sécurité et authentification](#sécurité-et-authentification)).
 - [x] **Architecture back-end** : en couches, packages par couche (voir [Architecture logicielle](#architecture-logicielle)).
 - [ ] **DTO et mapping** : outil de conversion entité ↔ DTO.
-- [ ] **Validation des données** : règles du mot de passe côté front et côté back.
+- [ ] **Validation des données** : outil de validation côté back. Les règles du mot de passe sont vérifiées côté front et côté back (voir [Sécurité et authentification](#sécurité-et-authentification)).
 - [ ] **Bibliothèque d'interface** — piste : Angular Material, déjà configuré.
 - [x] **Gestion de l'état front-end** : NgRx SignalStore (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
 - [ ] **Architecture front-end** : organisation des dossiers, composants et services.
@@ -395,6 +458,7 @@ Représentation visuelle des entités et de leurs relations : **À compléter**.
 | Synthèse du contexte, des spécifications et des contraintes du projet | Claude Code | Disposer d'un résumé de travail exhaustif | [À compléter] |
 | Structure initiale de ce document à partir du template | Claude Code | Gagner du temps sur la mise en forme | [À compléter] |
 | Recherche des versions supportées, mise à jour du `pom.xml`, régénération du front Angular 22 | Claude Code | Accélérer une migration mécanique | [À compléter] |
+| Comparaison des options de sécurité (JWT, Basic Auth, session, stockage du token) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 
 ---
 
