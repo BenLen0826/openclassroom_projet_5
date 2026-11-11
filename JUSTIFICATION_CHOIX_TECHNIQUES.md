@@ -9,10 +9,31 @@
 ## Sommaire
 
 1. [Présentation générale du projet](#1-présentation-générale-du-projet)
+   - [1.1 Objectifs du projet](#11-objectifs-du-projet)
+   - [1.2 Périmètre fonctionnel](#12-périmètre-fonctionnel)
 2. [Architecture et conception technique](#2-architecture-et-conception-technique)
+   - [2.1 Schéma global de l'architecture](#21-schéma-global-de-larchitecture)
+   - [2.2 Choix techniques](#22-choix-techniques)
+     - Cadre : [Contraintes imposées](#contraintes-imposées) · [Existant repris](#existant-repris)
+     - Synthèse : [Tableau des choix](#tableau-des-choix) · [Avantages et inconvénients](#avantages-et-inconvénients)
+     - Choix généraux : [Choix des versions](#choix-des-versions) · [Architecture logicielle](#architecture-logicielle)
+     - Back-end : [Base de données et accès aux données](#base-de-données-et-accès-aux-données) · [Sécurité et authentification](#sécurité-et-authentification) · [Librairies back-end](#librairies-back-end)
+     - Front-end : [Gestion de l'état front-end](#gestion-de-létat-front-end) · [Tests unitaires front-end](#tests-unitaires-front-end) · [Architecture front-end](#architecture-front-end) · [Interface utilisateur](#interface-utilisateur)
+     - Transverse : [Tests back-end et end-to-end](#tests-back-end-et-end-to-end) · [Outils de build et conventions](#outils-de-build-et-conventions) · [Design patterns](#design-patterns) · [Communication front-end / back-end](#communication-front-end--back-end)
+     - Suivi : [Choix à décider](#choix-à-décider)
+   - [2.3 API et schémas de données](#23-api-et-schémas-de-données)
+     - [Modèle de données](#modèle-de-données) · [Endpoints](#endpoints)
 3. [Tests, performance et qualité](#3-tests-performance-et-qualité)
+   - [3.1 Stratégie de test](#31-stratégie-de-test)
+   - [3.2 Rapport de performance et optimisation](#32-rapport-de-performance-et-optimisation)
+   - [3.3 Revue technique](#33-revue-technique)
 4. [Documentation utilisateur et supervision](#4-documentation-utilisateur-et-supervision)
+   - [4.1 FAQ utilisateur](#41-faq-utilisateur)
+   - [4.2 Supervision et tâches déléguées à l'IA](#42-supervision-et-tâches-déléguées-à-lia)
 5. [Annexes](#5-annexes)
+   - [Annexe A — Analyse des maquettes et des besoins front-end](#annexe-a--analyse-des-maquettes-et-des-besoins-front-end)
+     - [A.1 Écrans et spécifications](#a1-écrans-et-lien-avec-les-spécifications) · [A.2 Navigation et mise en page](#a2-navigation-et-mise-en-page) · [A.3 Composants](#a3-composants-front-end-identifiés) · [A.4 Données nécessaires](#a4-données-nécessaires-impact-sur-le-modèle-et-lapi) · [A.5 Points non précisés](#a5-points-non-précisés-par-la-maquette-à-trancher-sans-ajouter-de-fonctionnalité)
+   - [Annexe B — Analyse du code existant](#annexe-b--analyse-du-code-existant)
 
 ---
 
@@ -556,6 +577,62 @@ Les tests suivent les bonnes pratiques visées : nommage explicite, isolation, s
 | Javadoc | Services et méthodes publiques non évidentes |
 | Commits et branches | `FRONT` / `BACK` / `PROJET : type - description` ; Gitflow `main` / `dev` / `feature/*` / `release/*` |
 
+#### Design patterns
+
+Récapitulatif des patterns qui découlent des choix précédents.
+
+| Pattern | Où | Rôle | Principe SOLID servi |
+|---------|----|------|----------------------|
+| **Architecture en couches** | Back : `controller` → `service` → `repository` | Séparer HTTP, métier et accès aux données | S (responsabilité unique) |
+| **Injection de dépendances / IoC** | Back : Spring, injection par constructeur (`@RequiredArgsConstructor`) ; front : `inject()` d'Angular | Les classes reçoivent leurs dépendances au lieu de les créer : remplaçables par des mocks dans les tests | D (inversion des dépendances) |
+| **Repository** | Back : interfaces Spring Data JPA | Isoler l'accès aux données derrière une interface | I (ségrégation des interfaces), D |
+| **DTO** (Data Transfer Object) | Back : records dans `dto/` ; front : interfaces dans `core/models/` | N'exposer que les données utiles (jamais le mot de passe), découpler l'API des entités | S |
+| **Mapper** | Back : interfaces MapStruct dans `mapper/` | Centraliser la conversion entité ↔ DTO | S |
+| **Gestionnaire d'erreurs centralisé** | Back : `@RestControllerAdvice` | Traduire chaque exception en réponse `ProblemDetail` en un seul endroit | O (ouvert / fermé) |
+| **Chaîne de filtres** | Back : filtres Spring Security (vérification du JWT) | Traiter la sécurité avant les contrôleurs, sans la mêler au métier | S |
+| **Intercepteur** | Front : `HttpInterceptorFn` (ajout du JWT, gestion des 401) | Traiter toutes les requêtes HTTP en un point unique | S, O |
+| **Guard** | Front : `authGuard`, `guestGuard` | Contrôler l'accès aux routes | S |
+| **Store** (état centralisé, flux unidirectionnel) | Front : NgRx SignalStore (`AuthStore`, `TopicStore`, `PostStore`) | Une seule source de vérité par domaine ; les composants lisent l'état et appellent des méthodes | S |
+| **Observer** (réactivité) | Front : signals et `HttpClient` (Observables RxJS) | Mettre l'interface à jour automatiquement quand l'état change | — |
+| **Composants conteneurs / de présentation** | Front : pages de `features/` (conteneurs) et composants de `shared/` (présentation, `input()` / `output()`) | Réutiliser l'affichage (ex. carte de thème) sans dupliquer la logique | S, O |
+
+#### Communication front-end / back-end
+
+| Aspect | Choix |
+|--------|-------|
+| Protocole et format | HTTP, données en **JSON** ; routes préfixées par `/api` (voir [2.3](#23-api-et-schémas-de-données)) |
+| URL de l'API côté front | Fichiers `environments` d'Angular (`apiUrl`), une valeur par environnement |
+| Authentification | En-tête **`Authorization: Bearer <JWT>`** ajouté par l'intercepteur ; seules l'inscription et la connexion sont publiques |
+| Codes HTTP | `200` lecture / modification, `201` création, `204` sans contenu ; `400`, `401`, `404`, `409` en erreur |
+| Format des erreurs | **`ProblemDetail`** (RFC 9457), avec la liste des erreurs par champ en cas de validation échouée ; affichées sous les champs côté front |
+| CORS | Origine du front uniquement (`http://localhost:4200` en développement), configurée dans Spring Security |
+| Dates | `Instant` sérialisé en ISO 8601 UTC, affiché dans le fuseau du navigateur |
+| Contrat | Interfaces TypeScript de `core/models/` alignées sur les DTO du back ; spécification OpenAPI consultable dans Swagger UI |
+
+Exemple : connexion puis consultation du fil.
+
+```mermaid
+sequenceDiagram
+    actor U as Utilisateur
+    participant F as Front Angular
+    participant S as Spring Security
+    participant A as API (controller / service)
+    participant D as MySQL
+
+    U->>F: Saisit identifiant + mot de passe
+    F->>A: POST /api/auth/login { identifier, password }
+    A->>D: Recherche par e-mail ou nom d'utilisateur
+    A-->>F: 200 { token } (mot de passe vérifié avec BCrypt)
+    F->>F: AuthStore + localStorage
+    U->>F: Ouvre le fil
+    F->>S: GET /api/posts + Authorization: Bearer token
+    S->>S: Vérifie signature et expiration
+    S->>A: Requête authentifiée (id utilisateur)
+    A->>D: Articles des thèmes suivis
+    A-->>F: 200 [ articles ]
+    Note over F,S: Token absent, invalide ou expiré : 401, l'intercepteur déconnecte et redirige vers la connexion
+```
+
 #### Choix à décider
 
 Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiquée est un point de départ, pas un choix.
@@ -577,6 +654,8 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Tests back et e2e** : JUnit + Mockito, `@SpringBootTest` + MockMvc, H2, JaCoCo, Cypress (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)).
 - [x] **Modèle de données et endpoints** : 4 entités, abonnements en `@ManyToMany`, 12 endpoints (voir [2.3 API et schémas de données](#23-api-et-schémas-de-données)).
 - [x] **Documentation de l'API** : springdoc-openapi, collection Postman, tableau dans le README (voir [Librairies back-end](#librairies-back-end)).
+- [x] **Design patterns** : récapitulatif (voir [Design patterns](#design-patterns)).
+- [x] **Communication front / back** : JSON, Bearer JWT, `ProblemDetail`, CORS (voir [Communication front-end / back-end](#communication-front-end--back-end)).
 - [x] **Conventions de code** : Prettier, ESLint, SonarLint, code en anglais, commits normés (voir [Outils de build et conventions](#outils-de-build-et-conventions)).
 
 ### 2.3 API et schémas de données
