@@ -109,7 +109,26 @@ com.openclassrooms.mddapi/
 └── config/       # Autres configurations (CORS…)
 ```
 
-Organisation du front-end : **À décider** (voir [Choix à décider](#choix-à-décider)).
+**Organisation du front-end** (voir [Architecture front-end](#architecture-front-end)) :
+
+```
+src/app/
+├── core/                  # Singletons, chargés une fois
+│   ├── models/            # Interfaces TypeScript (= DTO de l'API)
+│   ├── services/          # Appels HTTP : auth, user, topic, post, comment
+│   ├── stores/            # AuthStore, TopicStore, PostStore
+│   ├── guards/            # authGuard (routes privées), guestGuard (connexion / inscription)
+│   ├── interceptors/      # Ajout du JWT, gestion des 401
+│   └── layout/            # En-tête connecté + menu mobile
+├── features/              # Pages, chargées à la demande
+│   ├── auth/              # Accueil, connexion, inscription
+│   ├── posts/             # Fil, détail, création
+│   ├── topics/            # Liste des thèmes
+│   └── profile/           # Profil
+└── shared/
+    ├── components/        # Carte de thème, bouton retour…
+    └── validators/        # Validateur du mot de passe
+```
 
 ### 2.2 Choix techniques
 
@@ -161,6 +180,14 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | springdoc-openapi (Swagger UI) | Documentation de l'API | [springdoc.org](https://springdoc.org) | Documenter et tester les endpoints dans le navigateur | Documentation générée depuis le code, toujours à jour ; écart assumé avec la priorité aux modules Spring (voir [Librairies back-end](#librairies-back-end)) |
 | NgRx SignalStore | Gestion de l'état front-end | [ngrx.io/guide/signals](https://ngrx.io/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Suit la recommandation NgRx des directives, dans sa version légère basée sur les signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
 | Vitest | Tests unitaires front-end | [vitest.dev](https://vitest.dev) · [angular.dev/guide/testing](https://angular.dev/guide/testing) | Tester les composants et services Angular, mesurer la couverture | Lanceur de tests officiel et par défaut d'Angular 22, déjà configuré ; Jest étudié et écarté (voir [Tests unitaires front-end](#tests-unitaires-front-end)) |
+| `core/` + `features/` + `shared/`, formulaires réactifs typés | Architecture front-end | [Angular – Style guide](https://angular.dev/style-guide) · [Angular – Reactive forms](https://angular.dev/guide/forms/reactive-forms) | Organiser le front par fonctionnalité, séparer infrastructure, pages et composants réutilisables | Une fonctionnalité = un dossier, chargement à la demande ; stores et services partagés dans `core/` (voir [Architecture front-end](#architecture-front-end)) |
+| Angular Material | Bibliothèque d'interface | [material.angular.dev](https://material.angular.dev) | Fournir les composants d'interface (formulaires, cartes, menu mobile) | Déjà installée, maintenue par l'équipe Angular, accessibilité intégrée ; thème violet personnalisé (voir [Interface utilisateur](#interface-utilisateur)) |
+| JUnit Jupiter + Mockito | Tests unitaires back-end | [junit.org](https://junit.org/) · [site.mockito.org](https://site.mockito.org) | Tester les services, mappers et validateurs isolément | Recommandés par les directives, fournis par les starters de test Spring Boot (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)) |
+| `@SpringBootTest` + MockMvc, H2 | Tests d'intégration back-end | [Spring Boot – Testing](https://docs.spring.io/spring-boot/reference/testing/index.html) · [h2database.com](https://h2database.com) | Tester les endpoints de bout en bout (sécurité, validation, base) | Outils Spring ; base en mémoire, aucune dépendance à MySQL ou Docker pour lancer les tests (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)) |
+| JaCoCo · `@vitest/coverage-v8` | Couverture de code | [jacoco.org](https://www.jacoco.org/jacoco/trunk/doc/) · [vitest.dev/guide/coverage](https://vitest.dev/guide/coverage) | Mesurer la couverture (objectif ≥ 70 %) et produire les rapports | Outils de référence côté Java et côté Vitest ; seuil vérifié par Maven |
+| Cypress | Tests end-to-end | [docs.cypress.io](https://docs.cypress.io) | Tester le parcours complet dans un navigateur | Recommandé par les directives, interface de rejeu pas à pas (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)) |
+| Maven (wrapper) · Angular CLI · npm 11 | Outils de build | [maven.apache.org](https://maven.apache.org/guides/) · [angular.dev/tools/cli](https://angular.dev/tools/cli) | Compiler, tester et empaqueter le back et le front | Déjà en place, standards de chaque écosystème (voir [Outils de build et conventions](#outils-de-build-et-conventions)) |
+| Prettier · ESLint (`angular-eslint`) · SonarLint | Qualité et conventions de code | [prettier.io](https://prettier.io) · [github.com/angular-eslint](https://github.com/angular-eslint/angular-eslint) · [sonarsource.com/products/sonarlint](https://www.sonarsource.com/products/sonarlint/) | Formater et analyser le code automatiquement | Prettier déjà configuré ; ESLint est le linter officiel conseillé par Angular ; SonarLint cité par les directives (voir [Outils de build et conventions](#outils-de-build-et-conventions)) |
 | Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
 
 #### Avantages et inconvénients
@@ -185,6 +212,14 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | springdoc-openapi | Documentation interactive, à jour, importable dans Postman ; presque aucune configuration | Librairie tierce ; annotations ajoutées dans les contrôleurs |
 | NgRx SignalStore | Structure commune à tous les stores, peu de code ; basé sur les signals ; état séparé des appels HTTP | Dépendance supplémentaire ; API à apprendre, moins de ressources que le Store classique |
 | Vitest | Intégré à `ng test` et maintenu par Angular ; rapide (esbuild, mode watch ciblé) ; syntaxe compatible avec Jest | Plus récent que Jest : moins de tutoriels Angular existants l'utilisent |
+| `core/` + `features/` + `shared/` | Une fonctionnalité = un dossier ; chargement à la demande ; pas d'imports croisés entre fonctionnalités | Il faut décider de ce qui relève de `core/` |
+| Angular Material | Composants prêts, accessibles, responsive (`mat-sidenav`, `BreakpointObserver`) | Style Material à adapter aux maquettes |
+| JUnit + Mockito | Tests rapides et isolés ; standard Java | Mocks à maintenir quand les dépendances changent |
+| `@SpringBootTest` + MockMvc, H2 | Tests réalistes (filtres de sécurité, validation, JPA) sans serveur ni MySQL | Plus lents que les tests unitaires ; H2 n'est pas strictement identique à MySQL |
+| JaCoCo / coverage-v8 | Rapports HTML lisibles, seuil bloquant possible | Une couverture élevée ne garantit pas des tests pertinents |
+| Cypress | Parcours utilisateur réel, rejeu visuel ; recommandé par les directives | Plus lent ; nécessite le front et le back lancés |
+| Maven / Angular CLI | Déjà en place, aucune installation (wrapper) | Configuration Maven verbeuse (XML) |
+| Prettier / ESLint / SonarLint | Style homogène et erreurs détectées dans l'IDE | ESLint à ajouter et configurer |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
 
 #### Choix des versions
@@ -456,6 +491,71 @@ L'existant utilisait Karma + Jasmine (configuration par défaut d'Angular 14), a
 - Écart avec la recommandation Jest des directives, justifié ci-dessus.
 - Outil plus récent : une partie des ressources Angular en ligne montre encore Jest ou Karma.
 
+#### Architecture front-end
+
+**Décision (11/11/2026) :** organisation **`core/` + `features/` + `shared/`** (arborescence en [2.1](#21-schéma-global-de-larchitecture)), pages chargées à la demande, **formulaires réactifs typés**, composants standalone.
+
+| Critère | **`core/` + `features/` + `shared/`** (retenu) | Par type (`components/`, `services/`, `models/`) | Bibliothèques par fonctionnalité (Nx) |
+|---------|------------------------------------------------|-------------------------------------------------|---------------------------------------|
+| Principe | Infrastructure et données globales dans `core/`, pages par fonctionnalité dans `features/`, composants réutilisables dans `shared/` | Un dossier par type de fichier | Mono-dépôt découpé en bibliothèques |
+| Avantages | Organisation répandue dans la communauté Angular ; une fonctionnalité = un dossier ; chargement à la demande | Simple au départ | Frontières strictes |
+| Inconvénients | Arbitrer ce qui va dans `core/` | Devient illisible ; fichiers d'une page dispersés | Surdimensionné |
+
+- **Stores et services dans `core/`** : le `TopicStore` sert aux thèmes et au profil, le `PostStore` à trois pages ; les placer dans une fonctionnalité créerait des imports croisés.
+- **Guards** : `authGuard` protège les pages connectées ; `guestGuard` renvoie un utilisateur déjà connecté vers le fil s'il ouvre la connexion ou l'inscription.
+- **Formulaires réactifs typés** plutôt que template-driven : validateurs (dont celui du mot de passe) testables sans le HTML ; approche stable. Les *Signal Forms* d'Angular, encore expérimentaux, sont écartés.
+- **Composants standalone** et syntaxe `@if` / `@for`, standards d'Angular 22 ; fichiers nommés selon le guide de style actuel (`home.ts`, sans suffixe `.component`).
+
+#### Interface utilisateur
+
+**Décision (11/11/2026) :** **Angular Material**, thème personnalisé (couleur principale violette des maquettes) et SCSS pour les écarts.
+
+| Critère | **Angular Material** (retenu) | PrimeNG | CSS seul ou Tailwind |
+|---------|-------------------------------|---------|----------------------|
+| Avantages | Déjà installée ; maintenue par l'équipe Angular ; accessibilité intégrée (ARIA, clavier) ; `mat-sidenav` pour le panneau mobile, `BreakpointObserver` (CDK) pour le responsive | Très riche | Rendu exact des maquettes |
+| Inconvénients | Style à adapter au violet des maquettes | À installer ; beaucoup de composants inutiles | Accessibilité et composants complexes (menu, sélecteur) à faire soi-même |
+
+Les maquettes (formulaires, cartes, boutons, liste déroulante, menu latéral) sont entièrement couvertes par Material.
+
+#### Tests back-end et end-to-end
+
+**Décision (11/11/2026) :**
+
+| Type | Outil | Portée |
+|------|-------|--------|
+| Unitaires back | **JUnit Jupiter + Mockito** (starters de test Spring Boot) | Services (règles métier), mappers, validateur du mot de passe |
+| Intégration back | **`@SpringBootTest` + MockMvc** | Endpoints de bout en bout : sécurité, validation, base |
+| Base de test | **H2 en mémoire** (profil `test`) | Tests indépendants de MySQL |
+| Couverture | **JaCoCo** (seuil de 70 % vérifié par Maven) ; **`@vitest/coverage-v8`** (`ng test --coverage`) | Rapports HTML pour le livrable |
+| End-to-end | **Cypress** | Parcours complet : inscription → abonnement → création d'article → commentaire → profil |
+
+| Critère | **H2 en mémoire** (retenu) | Testcontainers (MySQL dans Docker) |
+|---------|----------------------------|------------------------------------|
+| Avantages | Rapide, aucune installation | Vraie base MySQL, fidélité maximale |
+| Inconvénients | SQL légèrement différent de MySQL (risque faible : JPA génère les requêtes) | Docker obligatoire pour lancer les tests |
+
+| Critère | **Cypress** (retenu) | Playwright |
+|---------|----------------------|------------|
+| Avantages | Recommandé par les directives ; interface de rejeu pas à pas ; très documenté | Plus rapide, plusieurs navigateurs |
+| Inconvénients | Plus lent, un seul onglet | Écart supplémentaire avec les directives, sans gain décisif |
+
+Les tests suivent les bonnes pratiques visées : nommage explicite, isolation, structure Arrange–Act–Assert.
+
+#### Outils de build et conventions
+
+**Décision (11/11/2026) :** outils de build inchangés ; **Prettier** + **ESLint** côté front, **SonarLint** dans l'IDE.
+
+- **Build** : **Maven** avec le wrapper `mvnw` (aucune installation) côté back ; **Angular CLI** (builder esbuild) et **npm 11** côté front. Gradle n'apporterait rien et remettrait en cause le socle initial.
+
+| Sujet | Convention |
+|-------|------------|
+| Formatage front | Prettier (déjà configuré, `.prettierrc`) et `.editorconfig` |
+| Analyse statique front | ESLint via `angular-eslint` (à ajouter avec `ng add angular-eslint`) |
+| Style back | Conventions Java standard, formatage de l'IDE ; SonarLint dans l'IDE |
+| Langue | Code en anglais (classes, variables, endpoints) ; textes de l'interface, documentation et commits en français |
+| Javadoc | Services et méthodes publiques non évidentes |
+| Commits et branches | `FRONT` / `BACK` / `PROJET : type - description` ; Gitflow `main` / `dev` / `feature/*` / `release/*` |
+
 #### Choix à décider
 
 Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiquée est un point de départ, pas un choix.
@@ -469,15 +569,15 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **DTO et mapping** : records Java, MapStruct (voir [Librairies back-end](#librairies-back-end)).
 - [x] **Validation des données** : Bean Validation, `@ValidPassword` ; règles vérifiées côté front et côté back (voir [Librairies back-end](#librairies-back-end)).
 - [x] **Format des erreurs** : `ProblemDetail`, `@RestControllerAdvice` (voir [Librairies back-end](#librairies-back-end)).
-- [ ] **Bibliothèque d'interface** — piste : Angular Material, déjà configuré.
+- [x] **Bibliothèque d'interface** : Angular Material, thème violet (voir [Interface utilisateur](#interface-utilisateur)).
 - [x] **Gestion de l'état front-end** : NgRx SignalStore (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
-- [ ] **Architecture front-end** : organisation des dossiers, composants et services.
-- [ ] **Outils de build** : Maven (en place côté back) et Angular CLI (en place côté front).
+- [x] **Architecture front-end** : `core/` + `features/` + `shared/`, formulaires réactifs typés (voir [Architecture front-end](#architecture-front-end)).
+- [x] **Outils de build** : Maven (wrapper), Angular CLI, npm 11 (voir [Outils de build et conventions](#outils-de-build-et-conventions)).
 - [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
-- [ ] **Tests back et e2e** : tests unitaires et d'intégration back, tests end-to-end, outil de couverture back.
+- [x] **Tests back et e2e** : JUnit + Mockito, `@SpringBootTest` + MockMvc, H2, JaCoCo, Cypress (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)).
 - [x] **Modèle de données et endpoints** : 4 entités, abonnements en `@ManyToMany`, 12 endpoints (voir [2.3 API et schémas de données](#23-api-et-schémas-de-données)).
 - [x] **Documentation de l'API** : springdoc-openapi, collection Postman, tableau dans le README (voir [Librairies back-end](#librairies-back-end)).
-- [ ] **Conventions de code** : formatage, nommage, messages de commit.
+- [x] **Conventions de code** : Prettier, ESLint, SonarLint, code en anglais, commits normés (voir [Outils de build et conventions](#outils-de-build-et-conventions)).
 
 ### 2.3 API et schémas de données
 
@@ -579,14 +679,14 @@ Toutes les routes sont préfixées par `/api`. 🔒 = JWT obligatoire (en-tête 
 
 ### 3.1 Stratégie de test
 
-**À compléter** (outils à décider).
+Outils retenus à l'étape 2 (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)) ; résultats **À compléter** à l'étape 7. Objectif : au moins 70 % de couverture côté back et côté front.
 
 | Type de test | Outil / framework | Portée | Résultats |
 |--------------|-------------------|--------|-----------|
-| Test unitaire (front) | Vitest + jsdom | Composants et services Angular | |
-| Test unitaire (back) | | | |
-| Test d'intégration | | | |
-| Test e2e | | | |
+| Test unitaire (front) | Vitest + jsdom, couverture `@vitest/coverage-v8` | Composants, services, stores, guards, intercepteurs, validateurs | |
+| Test unitaire (back) | JUnit Jupiter + Mockito, couverture JaCoCo | Services, mappers, validateur du mot de passe | |
+| Test d'intégration | `@SpringBootTest` + MockMvc, H2 en mémoire | Endpoints : sécurité, validation, accès aux données | |
+| Test e2e | Cypress | Parcours complet : inscription → abonnement → article → commentaire → profil | |
 
 ### 3.2 Rapport de performance et optimisation
 
@@ -621,6 +721,7 @@ Toutes les routes sont préfixées par `/api`. 🔒 = JWT obligatoire (en-tête 
 | Comparaison des options de sécurité (JWT, Basic Auth, session, stockage du token) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 | Comparaison des librairies back-end (Lombok, mapping, validation, format des erreurs, documentation de l'API) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 | Proposition du modèle de données, du diagramme et de la liste des endpoints | Claude Code | Disposer d'une première conception à confronter aux spécifications et aux maquettes | [À compléter] |
+| Comparaison des options front-end, de test, de build et de conventions | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 
 ---
 
