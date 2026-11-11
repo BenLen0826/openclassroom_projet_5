@@ -475,18 +475,103 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [ ] **Outils de build** : Maven (en place côté back) et Angular CLI (en place côté front).
 - [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
 - [ ] **Tests back et e2e** : tests unitaires et d'intégration back, tests end-to-end, outil de couverture back.
+- [x] **Modèle de données et endpoints** : 4 entités, abonnements en `@ManyToMany`, 12 endpoints (voir [2.3 API et schémas de données](#23-api-et-schémas-de-données)).
 - [x] **Documentation de l'API** : springdoc-openapi, collection Postman, tableau dans le README (voir [Librairies back-end](#librairies-back-end)).
 - [ ] **Conventions de code** : formatage, nommage, messages de commit.
 
 ### 2.3 API et schémas de données
 
-**À compléter** une fois l'API conçue.
+**Décision (11/11/2026) :** modèle à 4 entités (`User`, `Topic`, `Post`, `Comment`) et une table de jointure pour les abonnements ; API de 12 endpoints sous `/api`.
+
+#### Modèle de données
+
+```mermaid
+erDiagram
+    USER ||--o{ POST : "écrit"
+    USER ||--o{ COMMENT : "écrit"
+    TOPIC ||--o{ POST : "contient"
+    POST ||--o{ COMMENT : "reçoit"
+    USER }o--o{ TOPIC : "s'abonne (table subscriptions)"
+
+    USER {
+        Long id PK
+        String email UK
+        String username UK
+        String password "haché BCrypt"
+        Instant createdAt
+        Instant updatedAt
+    }
+    TOPIC {
+        Long id PK
+        String name UK
+        String description
+    }
+    POST {
+        Long id PK
+        String title
+        String content "TEXT"
+        Instant createdAt
+        Long author_id FK
+        Long topic_id FK
+    }
+    COMMENT {
+        Long id PK
+        String content "TEXT"
+        Instant createdAt
+        Long author_id FK
+        Long post_id FK
+    }
+```
+
+Les spécifications ne prévoient ni suppression ni back-office : aucune cascade de suppression n'est nécessaire.
+
+**Choix de modélisation**
+
+| Sujet | Choix retenu | Alternative écartée |
+|-------|--------------|---------------------|
+| Abonnement User ↔ Topic | `@ManyToMany` avec la table de jointure `subscriptions (user_id, topic_id)`, clé primaire composée : un double abonnement est impossible | Entité `Subscription` dédiée : utile seulement si l'abonnement portait une donnée (date…), non demandée |
+| Sens des relations | `@ManyToOne` uniquement (article → auteur et thème, commentaire → auteur et article), plus `User.subscriptions` ; les commentaires d'un article sont lus par une requête du repository | `@OneToMany` bidirectionnel : risque de boucles dans le JSON et de requêtes N+1, sans besoin réel |
+| Identifiants | `Long` auto-incrémentés par MySQL (`IDENTITY`) | UUID : utile en système distribué, plus lourd en index |
+| Dates | `Instant` (UTC), rempli par **Spring Data JPA Auditing** (`@CreatedDate`, `@LastModifiedDate`) ; affiché dans le fuseau du navigateur par le pipe `date` d'Angular | `@CreationTimestamp` (spécifique à Hibernate, alors que les modules Spring sont prioritaires) ; `LocalDateTime` (sans fuseau, ambigu) |
+| Thèmes | Données de référence insérées au démarrage (étape 3) ; aucun endpoint de création, faute de back-office | — |
+| Sujet (`sub`) du JWT | Id de l'utilisateur | E-mail ou nom d'utilisateur : modifiables dans le profil, ils invalideraient le token |
+| Tailles des champs | E-mail 255, nom d'utilisateur 50, titre 255, contenus en `TEXT` ; validation `@NotBlank` + `@Size` alignée sur les colonnes | Les spécifications ne fixent pas de limite : aucune autre règle n'est inventée |
+
+#### Endpoints
+
+Toutes les routes sont préfixées par `/api`. 🔒 = JWT obligatoire (en-tête `Authorization: Bearer …`).
 
 | Endpoint | Méthode | Description | Corps / Réponse |
 |----------|---------|-------------|-----------------|
-| | | | |
+| `/auth/register` | POST | Inscription ; l'utilisateur est connecté directement | Corps `{ username, email, password }` → `201` `{ token }` |
+| `/auth/login` | POST | Connexion par e-mail **ou** nom d'utilisateur | Corps `{ identifier, password }` → `200` `{ token }` |
+| `/users/me` 🔒 | GET | Profil de l'utilisateur connecté | → `200` `{ id, username, email }` |
+| `/users/me` 🔒 | PUT | Modification du profil (mot de passe facultatif) | Corps `{ username, email, password? }` → `200` `{ id, username, email }` |
+| `/topics` 🔒 | GET | Tous les thèmes avec l'état d'abonnement | → `200` `[{ id, name, description, subscribed }]` |
+| `/users/me/subscriptions/{topicId}` 🔒 | POST | S'abonner à un thème | → `204` |
+| `/users/me/subscriptions/{topicId}` 🔒 | DELETE | Se désabonner d'un thème | → `204` |
+| `/posts` 🔒 | GET | Fil : articles des thèmes suivis, du plus récent au plus ancien | → `200` `[{ id, title, content, createdAt, authorUsername, topicId, topicName }]` |
+| `/posts` 🔒 | POST | Créer un article (auteur et date automatiques) | Corps `{ topicId, title, content }` → `201` article créé |
+| `/posts/{id}` 🔒 | GET | Détail d'un article | → `200` même format que le fil |
+| `/posts/{id}/comments` 🔒 | GET | Commentaires d'un article, ordre chronologique | → `200` `[{ id, content, createdAt, authorUsername }]` |
+| `/posts/{id}/comments` 🔒 | POST | Ajouter un commentaire (auteur et date automatiques) | Corps `{ content }` → `201` commentaire créé |
 
-Représentation visuelle des entités et de leurs relations : **À compléter**.
+**Codes d'erreur** (format `ProblemDetail`) :
+
+| Code | Cas |
+|------|-----|
+| `400` | Validation échouée, avec la liste des erreurs par champ |
+| `401` | Token absent ou invalide ; identifiants incorrects à la connexion |
+| `404` | Thème ou article introuvable |
+| `409` | E-mail ou nom d'utilisateur déjà utilisé |
+
+**Choix de conception de l'API**
+- **Inscription = connexion** : l'API renvoie un token, le front redirige vers le fil. Ce n'est pas une fonctionnalité supplémentaire, seulement l'enchaînement des écrans.
+- **Champ `subscribed` sur les thèmes** : un seul appel alimente la page des thèmes (« Déjà abonné ») et la page profil ; le `TopicStore` en déduit les thèmes suivis par une valeur calculée.
+- **Tri du fil côté front** : l'API renvoie l'ordre décroissant et le `PostStore` inverse l'ordre à la demande. Sans pagination, toutes les données sont déjà chargées : tri instantané, sans requête. Un paramètre `?sort=asc|desc` ne deviendrait utile qu'avec de la pagination.
+- **Commentaires dans un endpoint séparé** : plus conforme à REST ; après un ajout, seule la liste des commentaires est rechargée.
+- **Extrait dans le fil** : le contenu complet est renvoyé et tronqué en CSS ; pas de DTO spécifique sans pagination.
+- **Aucun identifiant d'utilisateur dans les URL** : l'utilisateur est déduit du token (voir [Sécurité et authentification](#sécurité-et-authentification)).
 
 ---
 
@@ -535,6 +620,7 @@ Représentation visuelle des entités et de leurs relations : **À compléter**.
 | Recherche des versions supportées, mise à jour du `pom.xml`, régénération du front Angular 22 | Claude Code | Accélérer une migration mécanique | [À compléter] |
 | Comparaison des options de sécurité (JWT, Basic Auth, session, stockage du token) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 | Comparaison des librairies back-end (Lombok, mapping, validation, format des erreurs, documentation de l'API) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
+| Proposition du modèle de données, du diagramme et de la liste des endpoints | Claude Code | Disposer d'une première conception à confronter aux spécifications et aux maquettes | [À compléter] |
 
 ---
 
@@ -543,7 +629,7 @@ Représentation visuelle des entités et de leurs relations : **À compléter**.
 - [ ] Captures d'écran de l'UI et vues principales
 - [x] Analyse des besoins front-end (liens avec les spécifications et les maquettes) — [Annexe A](#annexe-a--analyse-des-maquettes-et-des-besoins-front-end)
 - [x] Analyse du code existant — [Annexe B](#annexe-b--analyse-du-code-existant)
-- [ ] Définition des données (schémas, formats, règles de validation et sécurisation)
+- [x] Définition des données (schémas, formats, règles de validation et sécurisation) — voir [2.3](#23-api-et-schémas-de-données), [Sécurité et authentification](#sécurité-et-authentification) et [Librairies back-end](#librairies-back-end)
 - [ ] Rapports de couverture et de tests
 - [ ] Rapport de revue technique
 
