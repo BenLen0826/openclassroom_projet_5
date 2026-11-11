@@ -292,7 +292,83 @@ Représentation visuelle des entités et de leurs relations : **À compléter**.
 ## 5. Annexes
 
 - [ ] Captures d'écran de l'UI et vues principales
-- [ ] Analyse des besoins front-end (liens avec les spécifications et les maquettes)
+- [x] Analyse des besoins front-end (liens avec les spécifications et les maquettes) — [Annexe A](#annexe-a--analyse-des-maquettes-et-des-besoins-front-end)
+- [x] Analyse du code existant — [Annexe B](#annexe-b--analyse-du-code-existant)
 - [ ] Définition des données (schémas, formats, règles de validation et sécurisation)
 - [ ] Rapports de couverture et de tests
 - [ ] Rapport de revue technique
+
+### Annexe A — Analyse des maquettes et des besoins front-end
+
+Source : maquettes de Juana, [`docs/maquettes/maquettes-mdd.pdf`](docs/maquettes/maquettes-mdd.pdf) (export Figma, desktop et mobile). La consigne de la maquette est : « Chaque écran doit être responsive (utilisable à la fois sur ordinateur, tablette et téléphone) ». L'objectif est un respect global des écrans, pas un rendu au pixel près.
+
+#### A.1 Écrans et lien avec les spécifications
+
+| # | Écran | Contenu de la maquette | Spécification couverte |
+|---|-------|------------------------|------------------------|
+| 1 | Accueil (non connecté) | Logo MDD, boutons « Se connecter » et « S'inscrire » | Accéder au formulaire de connexion et d'inscription depuis la page d'accueil |
+| 2 | Inscription | Flèche retour ; champs Nom d'utilisateur, Adresse e-mail, Mot de passe ; bouton « S'inscrire » | S'inscrire avec un e-mail, un mot de passe et un nom d'utilisateur |
+| 3 | Connexion | Flèche retour ; champs « E-mail ou nom d'utilisateur », Mot de passe ; bouton « Se connecter » | Se connecter avec un e-mail ou un nom d'utilisateur |
+| 4 | Fil d'actualité (« Articles ») | Bouton « Créer un article », « Trier par ↓ » ; cartes avec titre, date, auteur, extrait du contenu | Consulter son fil ; trier du plus récent au plus ancien et inversement |
+| 5 | Thèmes | Cartes avec titre et description du thème ; bouton « S'abonner », ou « Déjà abonné » grisé | Consulter tous les thèmes ; s'abonner ; bouton inactif « Déjà abonné » |
+| 6 | Détail d'un article | Flèche retour ; titre, date, auteur, thème, contenu complet ; section « Commentaires » (nom d'utilisateur + contenu) ; zone « Écrivez ici votre commentaire » + icône d'envoi | Consulter un article ; ajouter un commentaire |
+| 7 | Création d'un article | Flèche retour ; liste « Sélectionner un thème », champs Titre et Contenu ; bouton « Créer » | Ajouter un article (thème, titre, contenu) |
+| 8 | Profil | Champs Username, e-mail, Mot de passe ; bouton « Sauvegarder » ; section « Abonnements » : cartes de thème avec « Se désabonner » | Consulter et modifier son profil ; se désabonner |
+
+Toutes les fonctionnalités des spécifications ont un écran, et aucun écran n'introduit de fonctionnalité hors spécifications. La déconnexion se fait par le lien « Se déconnecter » de l'en-tête.
+
+#### A.2 Navigation et mise en page
+
+- **En-tête connecté (desktop)** : logo à gauche ; à droite, « Se déconnecter » (en rouge), « Articles », « Thèmes » (lien actif en violet) et une icône d'utilisateur qui mène au profil.
+- **En-tête connecté (mobile)** : logo et menu burger. Au clic, un panneau latéral s'ouvre à droite avec « Se déconnecter », « Articles », « Thèmes » et l'icône de profil en bas.
+- **Inscription et connexion** : en-tête réduit au logo sur desktop ; sur mobile, pas d'en-tête, flèche retour et grand logo au-dessus du formulaire.
+- **Grilles responsive** : cartes d'articles et de thèmes sur 2 colonnes en desktop, 1 colonne en mobile.
+- **Flèche retour** sur l'inscription, la connexion, le détail et la création d'un article.
+
+#### A.3 Composants front-end identifiés
+
+| Composant | Utilisé sur | Remarque |
+|-----------|-------------|----------|
+| En-tête connecté + menu mobile | Fil, thèmes, article, création, profil | Un seul composant de mise en page, avec un panneau latéral en mobile |
+| En-tête minimal (logo) | Inscription, connexion | Masqué en mobile |
+| Bouton retour | Inscription, connexion, article, création | Revient à la page précédente |
+| Carte d'article | Fil | Titre, date, auteur, extrait du contenu |
+| Carte de thème | Thèmes, profil | **Réutilisable** : seuls le bouton et son action changent (« S'abonner » / « Déjà abonné » sur la page des thèmes, « Se désabonner » sur le profil) |
+| Commentaire | Détail d'un article | Nom d'utilisateur + bulle de contenu |
+| Formulaires | Inscription, connexion, création, profil, commentaire | Champs et bouton violet, messages de validation à afficher |
+
+Style relevé : couleur principale violette (boutons, logo, lien actif), rouge pour « Se déconnecter », cartes sur fond gris clair, bouton désactivé gris. Les valeurs exactes (couleurs, police, espacements) seront relevées dans Figma lors de l'intégration (étape 6).
+
+#### A.4 Données nécessaires (impact sur le modèle et l'API)
+
+| Élément | Données affichées ou saisies |
+|---------|------------------------------|
+| Thème | Titre, **description** (la description n'est pas citée dans les spécifications, mais elle figure sur la maquette) |
+| Article, carte du fil | Titre, date, nom de l'auteur, extrait du contenu |
+| Article, détail | Titre, date, nom de l'auteur, nom du thème, contenu complet, commentaires |
+| Commentaire | Nom de l'auteur, contenu (la date est enregistrée automatiquement, mais n'est pas affichée sur la maquette) |
+| Profil | Nom d'utilisateur, e-mail, nouveau mot de passe, abonnements (titre et description de chaque thème) |
+| Page des thèmes | Pour chaque thème : savoir si l'utilisateur y est déjà abonné |
+| Création d'un article | Liste des thèmes à proposer dans la liste de sélection |
+
+#### A.5 Points non précisés par la maquette (à trancher sans ajouter de fonctionnalité)
+
+- **Messages d'erreur et de validation** (mot de passe invalide, identifiants incorrects, champ vide) : non dessinés, à afficher sous les champs concernés.
+- **Fil ou liste d'abonnements vides** : aucun état vide dessiné ; un message court suffira.
+- **Champ mot de passe du profil** : il sert à saisir un nouveau mot de passe ; il sera vide par défaut et facultatif.
+- **Tri du fil** : « Trier par ↓ » ne précise pas le critère ; d'après les spécifications, il s'agit de la date, en ordre décroissant ou croissant, et la flèche indique le sens.
+- **Pagination** : non prévue sur la maquette ni dans les spécifications, donc pas de pagination.
+
+### Annexe B — Analyse du code existant
+
+État du repository au démarrage (commit `d3e5bf5`).
+
+| Partie | Existant | À compléter ou corriger | Traitement |
+|--------|----------|-------------------------|------------|
+| Back-end | `MddApiApplication` ; dépendances Web, Data JPA, MySQL | Spring Boot 2.7.3 et Java 11 ne sont plus maintenus | Mis à jour : Spring Boot 4.1.2, Java 21 |
+| Back-end | `application.properties` vide | Pas de connexion à la base : le test `contextLoads` échoue | Étape 3 |
+| Back-end | — | Aucune entité, aucun endpoint, aucune sécurité | Étapes 2 à 6 |
+| Front-end | Angular 14, structure à `NgModule` ; Karma + Jasmine | Angular 14 n'est plus supporté et ne fonctionne pas avec Node 22 ; Karma est déprécié | Régénéré en Angular 22 (standalone, Vitest) |
+| Front-end | Page `home` de démonstration (logo, titre, bouton avec `alert`) | Ne correspond pas à l'écran d'accueil de la maquette | Remplacée à l'étape 5 / 6 |
+| Front-end | Angular Material, thème `deeppurple-amber` | Thème à adapter aux couleurs de la maquette | Material conservé, thème à l'étape 6 |
+| Front-end | Commentaire du routing suggérant des guards pour les routes privées | — | Repris dans la conception (guards) |
