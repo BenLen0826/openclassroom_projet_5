@@ -42,3 +42,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Cypress (captures et vidéos générées par les tests e2e)
+/cypress/screenshots
+/cypress/videos
+/cypress/downloads
