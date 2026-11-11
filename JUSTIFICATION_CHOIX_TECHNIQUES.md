@@ -567,6 +567,8 @@ Les maquettes (formulaires, cartes, boutons, liste déroulante, menu latéral) s
 | Avantages | Recommandé par les directives ; interface de rejeu pas à pas ; très documenté | Plus rapide, plusieurs navigateurs |
 | Inconvénients | Plus lent, un seul onglet | Écart supplémentaire avec les directives, sans gain décisif |
 
+**Mise en place de Cypress (étape 3)** : Cypress 16.2.1, lancé directement (`npm run cypress:run`, dans Chrome) pendant que l'application tourne (`npm start`). L'intégration Angular CLI `@cypress/schematic` (commande `ng e2e`) a été essayée puis retirée : avec un test volontairement faux, elle répondait quand même « succès » sans exécuter Cypress. Un outil de test qui ne signale pas les échecs donne une fausse confiance ; la commande directe, elle, échoue bien. Chrome est utilisé à la place d'Electron, le navigateur par défaut de Cypress, désormais déprécié.
+
 Les tests suivent les bonnes pratiques visées : nommage explicite, isolation, structure Arrange–Act–Assert.
 
 #### Outils de build et conventions
