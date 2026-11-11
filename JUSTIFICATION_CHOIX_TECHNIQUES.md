@@ -240,7 +240,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | JaCoCo / coverage-v8 | Rapports HTML lisibles, seuil bloquant possible | Une couverture élevée ne garantit pas des tests pertinents |
 | Cypress | Parcours utilisateur réel, rejeu visuel ; recommandé par les directives | Plus lent ; nécessite le front et le back lancés |
 | Maven / Angular CLI | Déjà en place, aucune installation (wrapper) | Configuration Maven verbeuse (XML) |
-| Prettier / ESLint / SonarLint | Style homogène et erreurs détectées dans l'IDE | ESLint à ajouter et configurer |
+| Prettier / ESLint / SonarLint | Style homogène et erreurs détectées dans l'IDE | Outils de développement à maintenir à jour (ex. alerte `npm audit` modérée dans la chaîne ESLint, sans impact sur l'application livrée) |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
 
 #### Choix des versions
@@ -578,7 +578,7 @@ Les tests suivent les bonnes pratiques visées : nommage explicite, isolation, s
 | Sujet | Convention |
 |-------|------------|
 | Formatage front | Prettier (déjà configuré, `.prettierrc`) et `.editorconfig` |
-| Analyse statique front | ESLint via `angular-eslint` (à ajouter avec `ng add angular-eslint`) |
+| Analyse statique front | ESLint via `angular-eslint` (ajouté avec `ng add angular-eslint`, `npm run lint`), règles recommandées TypeScript, Angular et accessibilité des templates |
 | Style back | Conventions Java standard, formatage de l'IDE ; SonarLint dans l'IDE |
 | Langue | Code en anglais (classes, variables, endpoints) ; textes de l'interface, documentation et commits en français |
 | Javadoc | Services et méthodes publiques non évidentes |
