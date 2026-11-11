@@ -56,22 +56,30 @@ Statuts possibles : **Terminée** / **En cours** / **À venir**.
 
 ### 2.1 Schéma global de l'architecture
 
-Le MVP est découpé en **deux applications distinctes** : un front-end Angular et un back-end Spring Boot qui expose une API et gère la base de données.
+Le MVP suit une **architecture client-serveur** : un front-end Angular (client) appelle en HTTP / JSON une **API REST** Spring Boot (serveur), seule à accéder à la base de données MySQL. Le back-end est organisé **en couches**.
 
 ```mermaid
 flowchart LR
     U([Utilisateur<br/>navigateur]) --> F
     F["<b>Front-end Angular</b><br/>Application web (SPA)<br/>TypeScript"]
-    B["<b>Back-end Spring Boot</b><br/>API exposée au front<br/>Logique métier<br/>Java, Spring Core (IoC, DI)"]
-    D[("<b>Base de données</b><br/>Relationnelle<br/>Moteur à décider<br/>(piste : MySQL)")]
-    F <-- "API sécurisée<br/>(mécanisme à décider)" --> B
-    B <-- "Persistance" --> D
+    subgraph B["<b>Back-end Spring Boot</b> (Java 21)"]
+        direction TB
+        C["<b>controller</b><br/>Endpoints REST, DTO"]
+        S["<b>service</b><br/>Règles métier"]
+        R["<b>repository</b><br/>Spring Data JPA"]
+        C --> S --> R
+    end
+    D[("<b>MySQL</b><br/>Base relationnelle")]
+    F <-- "API REST · HTTP / JSON<br/>(sécurisation à décider)" --> C
+    R <-- "JPA / Hibernate" --> D
 ```
 
 **Légende**
 - **Front-end** : l'interface affichée dans le navigateur ; il ne communique qu'avec l'API.
-- **Back-end** : expose l'API, applique les règles métier et la sécurité ; il est le seul à accéder à la base de données.
-- **Base de données** : stocke les utilisateurs, thèmes, abonnements, articles et commentaires.
+- **controller** : reçoit les requêtes HTTP, valide les données reçues, renvoie des DTO en JSON. Aucune règle métier.
+- **service** : applique les règles métier (auteur et date automatiques, abonnements, tri du fil…).
+- **repository** : accès aux données via Spring Data JPA ; seule couche qui parle à la base.
+- **MySQL** : stocke les utilisateurs, thèmes, abonnements, articles et commentaires. Tables créées par l'ORM.
 - **Services tiers** : aucun prévu pour le MVP.
 
 **Organisation du repository** (un seul repository GitHub, imposé par ORION) :
@@ -80,10 +88,27 @@ flowchart LR
 projet_5/
 ├── back/    # API Spring Boot (Maven)
 ├── front/   # Application Angular (Angular CLI)
+├── docs/    # Maquettes et documents annexes
+├── JUSTIFICATION_CHOIX_TECHNIQUES.md
 └── README.md
 ```
 
-Organisation interne des modules, dossiers et conventions : **À décider** (voir [Choix à décider](#choix-à-décider)).
+**Organisation des packages du back-end** (par couche) :
+
+```
+com.openclassrooms.mddapi/
+├── controller/   # Contrôleurs REST
+├── service/      # Logique métier
+├── repository/   # Interfaces Spring Data JPA
+├── entity/       # Entités JPA (tables)
+├── dto/          # Objets échangés avec le front
+├── mapper/       # Conversion entité <-> DTO
+├── exception/    # Exceptions métier et gestion globale des erreurs
+├── security/     # Configuration Spring Security, authentification
+└── config/       # Autres configurations (CORS…)
+```
+
+Organisation du front-end : **À décider** (voir [Choix à décider](#choix-à-décider)).
 
 ### 2.2 Choix techniques
 
@@ -121,6 +146,10 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | TypeScript 6.0 | Langage front-end | [typescriptlang.org](https://www.typescriptlang.org/docs/) | Typer le code du front | Langage natif d'Angular ; version imposée par Angular 22 (>= 6.0 < 6.1) |
 | Java 21 (LTS) | Langage back-end | [dev.java](https://dev.java) | Développer l'API | Java imposé par ORION ; version LTS supportée jusqu'en septembre 2028 |
 | Spring Boot 4.1 (inclut Spring Core) | Framework back-end | [docs.spring.io/spring-boot](https://docs.spring.io/spring-boot/) | Fournir l'IoC / DI et accélérer la configuration de l'API | Spring Core obligatoire, Spring Boot recommandé ; 4.1 = seule version avec un support OSS durable (juillet 2027) |
+| Client-serveur, API REST | Architecture globale | [Spring – Building REST services](https://spring.io/guides/tutorials/rest) | Séparer le front et le back, qui communiquent en HTTP / JSON | Imposé par les contraintes (back-end distinct, communication par une API) ; standard le plus répandu (voir [Architecture logicielle](#architecture-logicielle)) |
+| Architecture en couches, packages par couche | Architecture back-end | [Spring Boot – Structuring your code](https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html) | Séparer les responsabilités : HTTP, métier, accès aux données | Standard Spring, lisible, applique SOLID ; adaptée à 5 entités (voir [Architecture logicielle](#architecture-logicielle)) |
+| MySQL | Base de données | [dev.mysql.com/doc](https://dev.mysql.com/doc/) | Stocker les données relationnelles du MVP | Données fortement liées ; choix initial d'Heidi, déjà installé et configuré dans le `pom.xml` (voir [Base de données et accès aux données](#base-de-données-et-accès-aux-données)) |
+| Spring Data JPA (Hibernate) | Accès aux données (ORM) | [docs.spring.io/spring-data/jpa](https://docs.spring.io/spring-data/jpa/reference/) | Associer les entités Java aux tables, générer les requêtes et le schéma | Module Spring prioritaire (contrainte) ; création de la base via l'ORM ; choix initial d'Heidi (voir [Base de données et accès aux données](#base-de-données-et-accès-aux-données)) |
 | NgRx SignalStore | Gestion de l'état front-end | [ngrx.io/guide/signals](https://ngrx.io/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Suit la recommandation NgRx des directives, dans sa version légère basée sur les signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
 | Vitest | Tests unitaires front-end | [vitest.dev](https://vitest.dev) · [angular.dev/guide/testing](https://angular.dev/guide/testing) | Tester les composants et services Angular, mesurer la couverture | Lanceur de tests officiel et par défaut d'Angular 22, déjà configuré ; Jest étudié et écarté (voir [Tests unitaires front-end](#tests-unitaires-front-end)) |
 | Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
@@ -133,6 +162,10 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | TypeScript | Erreurs détectées à la compilation ; modèles partagés entre services et composants | Étape de compilation ; types à maintenir face à l'API |
 | Java | Écosystème mature, typage fort, large communauté | Code plus verbeux que Kotlin ou des langages de script |
 | Spring Boot | Auto-configuration, serveur embarqué, starters (Web, Data, Security) ; IoC et DI au service des principes SOLID | Configuration implicite parfois difficile à diagnostiquer ; démarrage et mémoire plus lourds qu'un micro-framework |
+| Client-serveur, API REST | Front et back indépendants (développement, déploiement, évolution) ; standard compris de tous ; API sans état, réutilisable par un autre client (application mobile) | Deux applications à lancer et configurer ; communication réseau à sécuriser (authentification, CORS) |
+| Architecture en couches | Responsabilités séparées, code lisible et testable couche par couche ; standard Spring | Le métier dépend des entités JPA ; risque de services « fourre-tout » si le projet grossit |
+| MySQL | Gratuit, très répandu, déjà installé ; relations et contraintes d'intégrité gérées par la base | Moins de fonctionnalités avancées que PostgreSQL (inutiles pour le MVP) |
+| Spring Data JPA | Relations gérées automatiquement ; requêtes générées depuis le nom des méthodes ; schéma créé par l'ORM | « Magie » à maîtriser : chargement paresseux, requêtes N+1 ; SQL généré moins visible |
 | NgRx SignalStore | Structure commune à tous les stores, peu de code ; basé sur les signals ; état séparé des appels HTTP | Dépendance supplémentaire ; API à apprendre, moins de ressources que le Store classique |
 | Vitest | Intégré à `ng test` et maintenu par Angular ; rapide (esbuild, mode watch ciblé) ; syntaxe compatible avec Jest | Plus récent que Jest : moins de tutoriels Angular existants l'utilisent |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
@@ -162,6 +195,68 @@ Sources : [endoflife.date – Spring Boot](https://endoflife.date/spring-boot), 
 - Remise en cause partielle du socle initial (impact faible : une classe côté back, une page côté front).
 - Spring Boot 4 et Angular 22 diffèrent des nombreux tutoriels écrits pour Spring Boot 2 / 3 et Angular à base de `NgModule` : les exemples trouvés en ligne doivent être adaptés.
 - Le thème Angular Material passe au système Material 3 (thème `azure-blue` par défaut), à ajuster aux maquettes.
+
+#### Architecture logicielle
+
+**Décision (11/11/2026) :** architecture **client-serveur avec une API REST** ; back-end **en couches** (`controller` → `service` → `repository`), packages organisés **par couche**.
+
+**Architecture globale**
+
+| Option | Principe | Pour MDD |
+|--------|----------|----------|
+| **Client-serveur, API REST** (retenue) | Le front (Angular) appelle en HTTP / JSON une API (Spring Boot), seule à accéder à la base | Imposée par les contraintes : back-end distinct du front-end, communication par une API |
+| Monolithe avec rendu serveur | Le serveur génère les pages HTML (ex. Thymeleaf) | Incompatible avec Angular, imposé pour le front |
+| Microservices | Un service par domaine (utilisateurs, articles…), chacun avec sa base | Surdimensionné : communication entre services, déploiements multiples, supervision |
+| Pilotée par les événements | Les composants communiquent par messages (Kafka, RabbitMQ) | Aucun besoin asynchrone dans les spécifications |
+
+**Architecture du back-end**
+
+| Option | Principe | Avantages | Inconvénients |
+|--------|----------|-----------|---------------|
+| **En couches** (retenue) | `controller` (HTTP) → `service` (métier) → `repository` (données) ; chaque couche n'appelle que celle du dessous | Standard Spring, simple à lire et à tester ; applique directement SOLID | Le métier dépend un peu de la persistance (entités JPA) |
+| Hexagonale (ports et adaptateurs) | Métier au centre, indépendant de Spring et de la base ; interfaces (ports) et implémentations (adaptateurs) autour | Métier totalement isolé et testable | Beaucoup d'interfaces et de conversions pour un CRUD de 5 entités : surdimensionné |
+
+**Organisation des packages**
+
+| Option | Avantages | Inconvénients |
+|--------|-----------|---------------|
+| **Par couche** (retenue) : `controller/`, `service/`, `repository/`… | Lisible immédiatement par tout développeur Spring ; adaptée à 5 entités | Les fichiers d'une même fonctionnalité sont répartis dans plusieurs packages |
+| Par fonctionnalité : `user/`, `topic/`, `post/`, `comment/` | Tout le code d'une fonctionnalité au même endroit ; mieux adaptée à un gros projet | Moins habituelle ; découpage peu utile avec 5 entités |
+
+**Application des principes SOLID**
+- **S** (responsabilité unique) : chaque couche et chaque classe a un rôle (le contrôleur ne contient pas de métier, le service n'écrit pas de SQL).
+- **O** (ouvert / fermé) : gestion des erreurs centralisée et extensible (nouvelle exception = nouveau gestionnaire, sans modifier les contrôleurs).
+- **L** (substitution de Liskov) : les repositories étendent les interfaces Spring Data sans en changer le contrat.
+- **I** (ségrégation des interfaces) : un repository par entité, exposant uniquement les requêtes utiles.
+- **D** (inversion des dépendances) : les dépendances sont injectées par Spring (IoC / DI), par constructeur.
+
+**Évolutivité**
+- L'API ne garde pas d'état entre deux requêtes : plusieurs instances du back-end peuvent tourner derrière un répartiteur de charge.
+- Les couches permettent de remplacer une technologie (base, sécurité) sans toucher aux autres.
+- Si le projet grossit, le passage à des packages par fonctionnalité reste un simple déplacement de fichiers.
+
+#### Base de données et accès aux données
+
+**Décision (11/11/2026) :** base relationnelle **MySQL**, accès par **Spring Data JPA** (Hibernate), tables créées par l'ORM.
+
+Les données de MDD sont fortement liées : un article a un auteur et un thème, un commentaire a un article et un auteur, un utilisateur est abonné à plusieurs thèmes. Une base relationnelle garantit ces liens (clés étrangères, contraintes d'unicité) ; une base NoSQL (ex. MongoDB) serait moins adaptée.
+
+| Critère | **MySQL** (retenue) | PostgreSQL |
+|---------|---------------------|------------|
+| Type | Relationnelle | Relationnelle |
+| Avantages | Choix initial d'Heidi ; déjà installé (MySQL 26.7) ; pilote déjà dans le `pom.xml` ; très répandu | Plus riche (types JSON, contraintes avancées), réputé plus strict sur le standard SQL |
+| Inconvénients | Moins de fonctionnalités avancées, inutiles ici | À installer ; remettrait en cause le choix initial sans gain pour le MVP |
+
+| Critère | **Spring Data JPA** (retenu) | Spring Data JDBC |
+|---------|------------------------------|------------------|
+| Principe | ORM : les classes `@Entity` sont associées aux tables ; requêtes générées depuis le nom des méthodes | Correspondance simple objet / table, sans chargement paresseux ni cache, plus de SQL écrit à la main |
+| Avantages | Relations (`@ManyToOne`, `@ManyToMany`) gérées automatiquement ; création du schéma par l'ORM ; très documenté | Plus prévisible, moins de « magie » |
+| Inconvénients | Pièges à connaître : chargement paresseux, requêtes N+1 | Relations entre agrégats moins pratiques ; schéma à écrire soi-même |
+
+**Justification**
+- Les contraintes imposent de privilégier un module Spring Data ; les deux candidats en sont.
+- JPA permet de **créer la base via l'ORM**, comme demandé pour la mise en place de l'environnement, et gère les relations du modèle sans SQL manuel.
+- MySQL et JPA étaient les choix initiaux d'Heidi : les conserver évite de remettre en cause le socle sans gain.
 
 #### Gestion de l'état front-end
 
@@ -229,10 +324,12 @@ L'existant utilisait Karma + Jasmine (configuration par défaut d'Angular 14), a
 Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiquée est un point de départ, pas un choix.
 
 - [x] **Versions** : Java 21, Spring Boot 4.1, Angular 22 (voir [Choix des versions](#choix-des-versions)).
-- [ ] **Base de données** — piste : MySQL (relationnelle).
-- [ ] **Accès aux données** — piste : Spring Data JPA plutôt que Spring Data JDBC.
+- [x] **Architecture globale** : client-serveur, API REST (voir [Architecture logicielle](#architecture-logicielle)).
+- [x] **Base de données** : MySQL (voir [Base de données et accès aux données](#base-de-données-et-accès-aux-données)).
+- [x] **Accès aux données** : Spring Data JPA.
 - [ ] **Authentification et sécurisation de l'API** : mécanisme (session, JWT…), hachage des mots de passe, persistance de la connexion. Module Spring à privilégier : Spring Security.
-- [ ] **Architecture back-end** : découpage en couches, organisation des packages, DTO et mapping.
+- [x] **Architecture back-end** : en couches, packages par couche (voir [Architecture logicielle](#architecture-logicielle)).
+- [ ] **DTO et mapping** : outil de conversion entité ↔ DTO.
 - [ ] **Validation des données** : règles du mot de passe côté front et côté back.
 - [ ] **Bibliothèque d'interface** — piste : Angular Material, déjà configuré.
 - [x] **Gestion de l'état front-end** : NgRx SignalStore (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
