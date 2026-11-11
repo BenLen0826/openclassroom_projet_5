@@ -154,6 +154,11 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Spring Security | Sécurité back-end | [docs.spring.io/spring-security](https://docs.spring.io/spring-security/reference/) | Protéger l'API : authentification, routes publiques / protégées, CORS | Module Spring prioritaire (contrainte) ; standard de la sécurité dans Spring (voir [Sécurité et authentification](#sécurité-et-authentification)) |
 | JWT via Spring Security OAuth2 Resource Server | Authentification | [Spring Security – OAuth2 Resource Server JWT](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html) | Authentifier chaque requête par un token signé (HS256), valable 7 jours | API sans état ; connexion persistante sans stocker le mot de passe ; module Spring plutôt que la librairie jjwt (voir [Sécurité et authentification](#sécurité-et-authentification)) |
 | BCrypt | Hachage des mots de passe | [Spring Security – Password Storage](https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html) | Ne jamais stocker un mot de passe en clair | Algorithme de référence de Spring Security, sel intégré, coût réglable |
+| Records Java + Lombok (usage limité) | Réduction du code répétitif | [Java – Records](https://docs.oracle.com/en/java/javase/21/language/records.html) · [projectlombok.org](https://projectlombok.org/features/) | Écrire des DTO immuables et des entités sans getters / setters manuels | Records natifs pour les DTO ; Lombok limité aux entités et à l'injection par constructeur, sans `@Data` (voir [Librairies back-end](#librairies-back-end)) |
+| MapStruct | Conversion entité ↔ DTO | [mapstruct.org](https://mapstruct.org/documentation/stable/reference/html/) | Convertir les entités en DTO et inversement | Code généré à la compilation, oublis de champs détectés ; outil de référence en Spring (voir [Librairies back-end](#librairies-back-end)) |
+| Bean Validation (`spring-boot-starter-validation`) | Validation des données | [Spring – Validation](https://docs.spring.io/spring-framework/reference/core/validation/beanvalidation.html) | Valider les données reçues par l'API, dont la règle du mot de passe | Module Spring ; règles déclarées sur les DTO, erreurs renvoyées champ par champ (voir [Librairies back-end](#librairies-back-end)) |
+| `ProblemDetail` (RFC 9457) | Format des erreurs | [Spring – Error Responses](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html) | Renvoyer des erreurs au format standard, gérées en un seul endroit | Natif Spring, aucun format à inventer ; centralisé dans un `@RestControllerAdvice` (voir [Librairies back-end](#librairies-back-end)) |
+| springdoc-openapi (Swagger UI) | Documentation de l'API | [springdoc.org](https://springdoc.org) | Documenter et tester les endpoints dans le navigateur | Documentation générée depuis le code, toujours à jour ; écart assumé avec la priorité aux modules Spring (voir [Librairies back-end](#librairies-back-end)) |
 | NgRx SignalStore | Gestion de l'état front-end | [ngrx.io/guide/signals](https://ngrx.io/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Suit la recommandation NgRx des directives, dans sa version légère basée sur les signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
 | Vitest | Tests unitaires front-end | [vitest.dev](https://vitest.dev) · [angular.dev/guide/testing](https://angular.dev/guide/testing) | Tester les composants et services Angular, mesurer la couverture | Lanceur de tests officiel et par défaut d'Angular 22, déjà configuré ; Jest étudié et écarté (voir [Tests unitaires front-end](#tests-unitaires-front-end)) |
 | Git et GitHub, un seul repository | Gestion de code | [docs.github.com](https://docs.github.com) | Versionner le front et le back ensemble | Imposé par ORION |
@@ -173,6 +178,11 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Spring Security | Protection complète et éprouvée (filtres, CORS, en-têtes de sécurité) ; intégré à Spring Boot | Configuration dense, comportement par défaut parfois surprenant (tout est protégé) |
 | JWT (OAuth2 Resource Server) | API sans état ; connexion persistante ; vérification du token gérée par Spring, sans filtre écrit à la main | Token volé valable jusqu'à son expiration ; déconnexion uniquement côté client |
 | BCrypt | Lent par conception (résiste à la force brute) ; sel intégré ; standard Spring | Argon2 est plus récent et plus robuste (non nécessaire pour le MVP) |
+| Records + Lombok | DTO immuables sans dépendance ; entités courtes et lisibles | Code généré invisible, plugin d'IDE nécessaire ; pièges de `@Data` sur les entités (évité) |
+| MapStruct | Peu de code ; erreurs de mapping détectées à la compilation ; aussi rapide que du code manuel | Dépendance et processeur d'annotations à configurer avec Lombok |
+| Bean Validation | Validation déclarative et centralisée sur les DTO ; module Spring | Les règles métier (unicité) restent à vérifier dans le service |
+| `ProblemDetail` | Format standard, natif, extensible | Un peu plus verbeux qu'un format maison |
+| springdoc-openapi | Documentation interactive, à jour, importable dans Postman ; presque aucune configuration | Librairie tierce ; annotations ajoutées dans les contrôleurs |
 | NgRx SignalStore | Structure commune à tous les stores, peu de code ; basé sur les signals ; état séparé des appels HTTP | Dépendance supplémentaire ; API à apprendre, moins de ressources que le Store classique |
 | Vitest | Intégré à `ng test` et maintenu par Angular ; rapide (esbuild, mode watch ciblé) ; syntaxe compatible avec Jest | Plus récent que Jest : moins de tutoriels Angular existants l'utilisent |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
@@ -321,6 +331,70 @@ Malgré son nom, ce module n'implique pas de serveur OAuth : il sert uniquement 
 - Le `localStorage` est lisible par JavaScript : la protection repose sur l'absence de faille XSS.
 - Axes d'amélioration après le MVP : refresh token avec durée d'accès courte, cookie `HttpOnly`, liste de révocation.
 
+#### Librairies back-end
+
+**Décision (11/11/2026) :** **records Java** pour les DTO et **Lombok** limité ; **MapStruct** pour le mapping ; **Bean Validation** ; erreurs au format **`ProblemDetail`** ; documentation avec **springdoc-openapi**.
+
+**Réduction du code répétitif**
+
+| Critère | **Lombok, usage limité** (retenu) | Sans Lombok |
+|---------|-----------------------------------|-------------|
+| Principe | Annotations (`@Getter`, `@Setter`, `@NoArgsConstructor`, `@RequiredArgsConstructor`) qui génèrent le code à la compilation | Getters, setters et constructeurs écrits dans le fichier |
+| Avantages | Classes courtes et lisibles ; très répandu en Spring | Aucune dépendance, tout le code est visible |
+| Inconvénients | Code invisible, plugin d'IDE ; `@Data` dangereux sur les entités JPA (`equals` / `hashCode` et `toString` qui chargent les relations ou bouclent) | Classes longues, bruit autour du métier |
+
+Règles retenues :
+- **DTO** : records Java (immuables, natifs), donc sans Lombok.
+- **Entités** : `@Getter`, `@Setter`, `@NoArgsConstructor` uniquement ; **`@Data` interdit**.
+- **Services et contrôleurs** : injection par constructeur via `@RequiredArgsConstructor`.
+
+**Conversion entité ↔ DTO**
+
+| Critère | **MapStruct** (retenu) | Mapping manuel | ModelMapper |
+|---------|------------------------|----------------|-------------|
+| Principe | Mappers générés à la compilation depuis une interface | Méthodes écrites à la main | Conversion à l'exécution par réflexion |
+| Détection des erreurs | Compilation (avertissement si un champ n'est pas mappé) | Tests | Exécution |
+| Performance | Équivalente à du code manuel | Optimale | Plus lente |
+| Avantages | Peu de code ; champs imbriqués simples (`@Mapping(source = "author.username", target = "authorUsername")`) ; compatible avec les records | Aucune dépendance, explicite | Aucune configuration |
+| Inconvénients | Processeur d'annotations à configurer avec Lombok (`lombok-mapstruct-binding`) | Répétitif, oublis lors de l'ajout d'un champ | Peu sûr, difficile à déboguer |
+
+Le mapping manuel restait défendable pour 4 entités ; MapStruct est retenu pour la détection des oublis à la compilation et parce qu'il structure naturellement le package `mapper/`.
+
+**Validation des données**
+
+| Critère | **Bean Validation** (retenu) | Vérifications manuelles |
+|---------|------------------------------|-------------------------|
+| Principe | Annotations sur les DTO (`@NotBlank`, `@Email`, `@Size`, `@Pattern`) et `@Valid` dans les contrôleurs | Des `if` dans chaque service |
+| Avantages | Module Spring ; déclaratif ; erreurs champ par champ | Aucun |
+| Inconvénients | Règles métier à traiter ailleurs | Répétitif ; mélange validation et métier |
+
+- **Mot de passe** : annotation personnalisée **`@ValidPassword`** (expression régulière centralisée), utilisée à l'inscription et à la modification du profil.
+- **Unicité de l'e-mail et du nom d'utilisateur** : vérifiée dans le service, avec une contrainte d'unicité en base en garde-fou.
+
+**Format des erreurs**
+
+| Critère | **`ProblemDetail`** (retenu) | DTO d'erreur maison |
+|---------|------------------------------|---------------------|
+| Principe | Format standard RFC 9457 (`type`, `title`, `status`, `detail`) fourni par Spring | Classe `ErrorResponse` propre au projet |
+| Avantages | Standard, aucun format à inventer, extensible (erreurs par champ) | Format libre |
+| Inconvénients | Un peu plus verbeux | Format à documenter et maintenir |
+
+Les erreurs sont centralisées dans un **`@RestControllerAdvice`** (package `exception/`) ; le front les affiche sous les champs concernés (voir Annexe A.5). Aucune trace technique n'est renvoyée au client.
+
+**Documentation de l'API**
+
+| Critère | **springdoc-openapi** (retenu) | Spring REST Docs | README seul |
+|---------|--------------------------------|------------------|-------------|
+| Principe | Spécification OpenAPI générée depuis le code, interface Swagger UI interactive | Documentation générée à partir des tests MockMvc (Asciidoctor) | Tableau des endpoints écrit à la main |
+| Avantages | Presque aucune configuration ; endpoints testables avec le JWT ; spécification importable dans Postman | Module Spring ; documentation forcément exacte | Aucun outil |
+| Inconvénients | Librairie tierce ; annotations dans les contrôleurs | Un test documenté par endpoint, configuration Asciidoctor, pas d'interface interactive | Se désynchronise du code |
+
+En complément : une **collection Postman** pour les tests manuels et le **tableau des endpoints dans le README**.
+
+**Inconvénients assumés**
+- springdoc-openapi est une librairie tierce, alors que les contraintes privilégient les modules Spring. Spring REST Docs, seul équivalent Spring, répond à un autre besoin (documentation tirée des tests) pour un coût bien supérieur, disproportionné pour un MVP. La version de springdoc compatible avec Spring Boot 4 sera vérifiée à l'installation.
+- Lombok et MapStruct ajoutent deux processeurs d'annotations à configurer ensemble dans Maven.
+
 #### Gestion de l'état front-end
 
 **Décision (11/11/2026) :** **NgRx SignalStore** (`@ngrx/signals` 22, compatible avec Angular 22). Un premier choix de services + signals a été réévalué au profit de SignalStore pour suivre la recommandation NgRx des directives.
@@ -392,15 +466,16 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Accès aux données** : Spring Data JPA.
 - [x] **Authentification et sécurisation de l'API** : Spring Security, JWT (OAuth2 Resource Server), BCrypt (voir [Sécurité et authentification](#sécurité-et-authentification)).
 - [x] **Architecture back-end** : en couches, packages par couche (voir [Architecture logicielle](#architecture-logicielle)).
-- [ ] **DTO et mapping** : outil de conversion entité ↔ DTO.
-- [ ] **Validation des données** : outil de validation côté back. Les règles du mot de passe sont vérifiées côté front et côté back (voir [Sécurité et authentification](#sécurité-et-authentification)).
+- [x] **DTO et mapping** : records Java, MapStruct (voir [Librairies back-end](#librairies-back-end)).
+- [x] **Validation des données** : Bean Validation, `@ValidPassword` ; règles vérifiées côté front et côté back (voir [Librairies back-end](#librairies-back-end)).
+- [x] **Format des erreurs** : `ProblemDetail`, `@RestControllerAdvice` (voir [Librairies back-end](#librairies-back-end)).
 - [ ] **Bibliothèque d'interface** — piste : Angular Material, déjà configuré.
 - [x] **Gestion de l'état front-end** : NgRx SignalStore (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
 - [ ] **Architecture front-end** : organisation des dossiers, composants et services.
 - [ ] **Outils de build** : Maven (en place côté back) et Angular CLI (en place côté front).
 - [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
 - [ ] **Tests back et e2e** : tests unitaires et d'intégration back, tests end-to-end, outil de couverture back.
-- [ ] **Documentation de l'API** : format et outil.
+- [x] **Documentation de l'API** : springdoc-openapi, collection Postman, tableau dans le README (voir [Librairies back-end](#librairies-back-end)).
 - [ ] **Conventions de code** : formatage, nommage, messages de commit.
 
 ### 2.3 API et schémas de données
@@ -459,6 +534,7 @@ Représentation visuelle des entités et de leurs relations : **À compléter**.
 | Structure initiale de ce document à partir du template | Claude Code | Gagner du temps sur la mise en forme | [À compléter] |
 | Recherche des versions supportées, mise à jour du `pom.xml`, régénération du front Angular 22 | Claude Code | Accélérer une migration mécanique | [À compléter] |
 | Comparaison des options de sécurité (JWT, Basic Auth, session, stockage du token) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
+| Comparaison des librairies back-end (Lombok, mapping, validation, format des erreurs, documentation de l'API) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 
 ---
 
