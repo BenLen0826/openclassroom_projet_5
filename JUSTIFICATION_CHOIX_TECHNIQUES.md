@@ -331,6 +331,13 @@ Les données de MDD sont fortement liées : un article a un auteur et un thème,
 - JPA permet de **créer la base via l'ORM**, comme demandé pour la mise en place de l'environnement, et gère les relations du modèle sans SQL manuel.
 - MySQL et JPA étaient les choix initiaux d'Heidi : les conserver évite de remettre en cause le socle sans gain.
 
+**Mise en place (étape 3)**
+- Base `mdd` en `utf8mb4` (accents et emojis dans les articles et commentaires), schéma généré par Hibernate (`spring.jpa.hibernate.ddl-auto=update`).
+- Compte dédié `mdd_user`, limité à la base `mdd` et aux seuls droits nécessaires (**moindre privilège**) : `SELECT`, `INSERT`, `UPDATE`, `DELETE` pour les données, `CREATE`, `ALTER`, `INDEX`, `REFERENCES` pour la génération du schéma. Pas de `DROP` (le mode `update` ne supprime ni table ni colonne) ni d'accès aux autres bases. L'API ne se connecte jamais en `root`.
+- Base et compte créés par un script versionné, `back/sql/init-database.sql`, documenté dans le README : l'installation est reproductible sur un autre poste. Le dépôt ne contient qu'un mot de passe factice (`CHANGER_MOI`), à remplacer avant exécution.
+- Identifiants lus dans des variables d'environnement (fichier `back/.env` non versionné) ; les tests utilisent H2 et n'ont besoin ni de MySQL ni de ces identifiants.
+- Axe d'amélioration : en production, séparer un compte de migration (outil comme Flyway ou Liquibase, seul à modifier le schéma) du compte applicatif, réduit alors à `SELECT`, `INSERT`, `UPDATE`, `DELETE`. Ici, `ddl-auto` est conservé car les directives demandent de créer la base via l'ORM.
+
 #### Sécurité et authentification
 
 **Décision (11/11/2026) :** **Spring Security** avec authentification par **JWT**, généré et vérifié par le module **OAuth2 Resource Server** ; mots de passe hachés avec **BCrypt**.
