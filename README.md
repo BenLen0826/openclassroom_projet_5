@@ -41,6 +41,22 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 Don't forget to install your node_modules before starting (`npm install`).
 
+### Configuration
+
+L'URL de l'API est définie dans `src/environments/environment.development.ts` (utilisé par `ng serve`) et `src/environments/environment.ts` (utilisé par `ng build`). Par défaut : `http://localhost:8080/api`.
+
+### Commandes (depuis `front/`)
+
+| Commande | Rôle |
+|----------|------|
+| `npm start` | Lance l'application sur `http://localhost:4200` |
+| `npm test` | Lance les tests unitaires (Vitest) |
+| `npx ng test --watch=false --coverage` | Lance les tests une fois et génère le rapport de couverture `coverage/` |
+| `npm run lint` | Analyse le code avec ESLint (TypeScript, Angular, accessibilité des templates) |
+| `npm run build` | Compile l'application dans `dist/` |
+| `npm run cypress:run` | Lance les tests end-to-end Cypress dans Chrome, sans interface (l'application doit tourner : `npm start` dans un autre terminal) |
+| `npm run cypress:open` | Ouvre l'interface de Cypress pour lancer et suivre les tests pas à pas |
+
 ### Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.

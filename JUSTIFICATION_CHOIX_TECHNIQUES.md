@@ -240,7 +240,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | JaCoCo / coverage-v8 | Rapports HTML lisibles, seuil bloquant possible | Une couverture élevée ne garantit pas des tests pertinents |
 | Cypress | Parcours utilisateur réel, rejeu visuel ; recommandé par les directives | Plus lent ; nécessite le front et le back lancés |
 | Maven / Angular CLI | Déjà en place, aucune installation (wrapper) | Configuration Maven verbeuse (XML) |
-| Prettier / ESLint / SonarLint | Style homogène et erreurs détectées dans l'IDE | ESLint à ajouter et configurer |
+| Prettier / ESLint / SonarLint | Style homogène et erreurs détectées dans l'IDE | Outils de développement à maintenir à jour (ex. alerte `npm audit` modérée dans la chaîne ESLint, sans impact sur l'application livrée) |
 | Git / GitHub, un seul repository | Historique partagé, revue par pull request ; front et back versionnés ensemble | Deux chaînes de build dans un même repository ; organisation des dossiers à garder rigoureuse |
 
 #### Choix des versions
@@ -567,6 +567,8 @@ Les maquettes (formulaires, cartes, boutons, liste déroulante, menu latéral) s
 | Avantages | Recommandé par les directives ; interface de rejeu pas à pas ; très documenté | Plus rapide, plusieurs navigateurs |
 | Inconvénients | Plus lent, un seul onglet | Écart supplémentaire avec les directives, sans gain décisif |
 
+**Mise en place de Cypress (étape 3)** : Cypress 16.2.1, lancé directement (`npm run cypress:run`, dans Chrome) pendant que l'application tourne (`npm start`). L'intégration Angular CLI `@cypress/schematic` (commande `ng e2e`) a été essayée puis retirée : avec un test volontairement faux, elle répondait quand même « succès » sans exécuter Cypress. Un outil de test qui ne signale pas les échecs donne une fausse confiance ; la commande directe, elle, échoue bien. Chrome est utilisé à la place d'Electron, le navigateur par défaut de Cypress, désormais déprécié.
+
 Les tests suivent les bonnes pratiques visées : nommage explicite, isolation, structure Arrange–Act–Assert.
 
 #### Outils de build et conventions
@@ -578,7 +580,7 @@ Les tests suivent les bonnes pratiques visées : nommage explicite, isolation, s
 | Sujet | Convention |
 |-------|------------|
 | Formatage front | Prettier (déjà configuré, `.prettierrc`) et `.editorconfig` |
-| Analyse statique front | ESLint via `angular-eslint` (à ajouter avec `ng add angular-eslint`) |
+| Analyse statique front | ESLint via `angular-eslint` (ajouté avec `ng add angular-eslint`, `npm run lint`), règles recommandées TypeScript, Angular et accessibilité des templates |
 | Style back | Conventions Java standard, formatage de l'IDE ; SonarLint dans l'IDE |
 | Langue | Code en anglais (classes, variables, endpoints) ; textes de l'interface, documentation et commits en français |
 | Javadoc | Services et méthodes publiques non évidentes |
