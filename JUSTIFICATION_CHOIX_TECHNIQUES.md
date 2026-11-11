@@ -199,7 +199,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Bean Validation (`spring-boot-starter-validation`) | Validation des données | [Spring – Validation](https://docs.spring.io/spring-framework/reference/core/validation/beanvalidation.html) | Valider les données reçues par l'API, dont la règle du mot de passe | Module Spring ; règles déclarées sur les DTO, erreurs renvoyées champ par champ (voir [Librairies back-end](#librairies-back-end)) |
 | `ProblemDetail` (RFC 9457) | Format des erreurs | [Spring – Error Responses](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html) | Renvoyer des erreurs au format standard, gérées en un seul endroit | Natif Spring, aucun format à inventer ; centralisé dans un `@RestControllerAdvice` (voir [Librairies back-end](#librairies-back-end)) |
 | springdoc-openapi (Swagger UI) | Documentation de l'API | [springdoc.org](https://springdoc.org) | Documenter et tester les endpoints dans le navigateur | Documentation générée depuis le code, toujours à jour ; écart assumé avec la priorité aux modules Spring (voir [Librairies back-end](#librairies-back-end)) |
-| NgRx SignalStore | Gestion de l'état front-end | [ngrx.io/guide/signals](https://ngrx.io/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Suit la recommandation NgRx des directives, dans sa version légère basée sur les signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
+| Services Angular + signals | Gestion de l'état front-end | [angular.dev/guide/signals](https://angular.dev/guide/signals) | Partager l'état entre composants (utilisateur connecté, abonnements, fil d'articles) et mettre l'interface à jour automatiquement | Approche native d'Angular, suffisante pour l'état réduit du MVP ; NgRx (Store et SignalStore) étudié et écarté (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)) |
 | Vitest | Tests unitaires front-end | [vitest.dev](https://vitest.dev) · [angular.dev/guide/testing](https://angular.dev/guide/testing) | Tester les composants et services Angular, mesurer la couverture | Lanceur de tests officiel et par défaut d'Angular 22, déjà configuré ; Jest étudié et écarté (voir [Tests unitaires front-end](#tests-unitaires-front-end)) |
 | `core/` + `features/` + `shared/`, formulaires réactifs typés | Architecture front-end | [Angular – Style guide](https://angular.dev/style-guide) · [Angular – Reactive forms](https://angular.dev/guide/forms/reactive-forms) | Organiser le front par fonctionnalité, séparer infrastructure, pages et composants réutilisables | Une fonctionnalité = un dossier, chargement à la demande ; stores et services partagés dans `core/` (voir [Architecture front-end](#architecture-front-end)) |
 | Angular Material | Bibliothèque d'interface | [material.angular.dev](https://material.angular.dev) | Fournir les composants d'interface (formulaires, cartes, menu mobile) | Déjà installée, maintenue par l'équipe Angular, accessibilité intégrée ; thème violet personnalisé (voir [Interface utilisateur](#interface-utilisateur)) |
@@ -231,7 +231,7 @@ Piste proposée : base relationnelle MySQL avec Spring Data JPA (préféré à S
 | Bean Validation | Validation déclarative et centralisée sur les DTO ; module Spring | Les règles métier (unicité) restent à vérifier dans le service |
 | `ProblemDetail` | Format standard, natif, extensible | Un peu plus verbeux qu'un format maison |
 | springdoc-openapi | Documentation interactive, à jour, importable dans Postman ; presque aucune configuration | Librairie tierce ; annotations ajoutées dans les contrôleurs |
-| NgRx SignalStore | Structure commune à tous les stores, peu de code ; basé sur les signals ; état séparé des appels HTTP | Dépendance supplémentaire ; API à apprendre, moins de ressources que le Store classique |
+| Services + signals | Natif Angular, aucune dépendance, très peu de code ; mise à jour automatique de l'interface ; état séparé des appels HTTP | Pas de structure imposée par un outil ; pas d'historique d'état type Redux DevTools |
 | Vitest | Intégré à `ng test` et maintenu par Angular ; rapide (esbuild, mode watch ciblé) ; syntaxe compatible avec Jest | Plus récent que Jest : moins de tutoriels Angular existants l'utilisent |
 | `core/` + `features/` + `shared/` | Une fonctionnalité = un dossier ; chargement à la demande ; pas d'imports croisés entre fonctionnalités | Il faut décider de ce qui relève de `core/` |
 | Angular Material | Composants prêts, accessibles, responsive (`mat-sidenav`, `BreakpointObserver`) | Style Material à adapter aux maquettes |
@@ -460,19 +460,19 @@ En complément : une **collection Postman** pour les tests manuels et le **table
 
 #### Gestion de l'état front-end
 
-**Décision (11/11/2026) :** **NgRx SignalStore** (`@ngrx/signals` 22, compatible avec Angular 22). Un premier choix de services + signals a été réévalué au profit de SignalStore pour suivre la recommandation NgRx des directives.
+**Décision (11/11/2026) :** **services Angular + signals**, sans bibliothèque de gestion d'état. NgRx SignalStore a été retenu un temps, puis écarté au profit de cette approche plus simple, avant qu'aucun code d'état ne soit écrit.
 
-L'état partagé du MVP est réduit : l'utilisateur connecté, ses abonnements (partagés entre la page des thèmes et la page profil) et le fil d'articles avec son tri. Il sera réparti en trois stores :
+L'état partagé du MVP est réduit : l'utilisateur connecté, ses abonnements (partagés entre la page des thèmes et la page profil) et le fil d'articles avec son tri. Il sera réparti en trois services d'état, appelés « stores » pour les distinguer des services HTTP :
 
-| Store | État géré |
-|-------|-----------|
+| Store (service Angular) | État géré |
+|-------------------------|-----------|
 | `AuthStore` | Utilisateur connecté, token |
 | `TopicStore` | Liste des thèmes, abonnements de l'utilisateur |
 | `PostStore` | Fil d'articles, sens du tri, article consulté |
 
-Les appels HTTP restent dans des services dédiés (un par ressource de l'API), utilisés par les stores : les services communiquent avec l'API, les stores gèrent l'état (principe de responsabilité unique).
+Chaque store est un service injectable (`providedIn: 'root'`) qui garde son état dans des `signal()` privés, l'expose en lecture seule (`asReadonly()`) et en valeurs calculées (`computed()`), et ne le modifie que par ses propres méthodes. Les appels HTTP restent dans des services dédiés (un par ressource de l'API), utilisés par les stores : les services communiquent avec l'API, les stores gèrent l'état (principe de responsabilité unique).
 
-| Critère | Services + signals | NgRx Store (Redux) | NgRx SignalStore |
+| Critère | **Services + signals** (retenu) | NgRx Store (Redux) | NgRx SignalStore |
 |---------|--------------------|--------------------|------------------|
 | Principe | Un service par domaine expose des signals ; les composants les lisent | Store global unique ; l'état change uniquement via des actions traitées par des reducers ; effets de bord dans des effects | Un store par domaine, déclaré avec `signalStore()` (état, méthodes, valeurs calculées), exposé en signals |
 | Code par fonctionnalité | ~1 fichier | ~4 fichiers (actions, reducer, effects, selectors) | ~1 fichier |
@@ -483,18 +483,20 @@ Les appels HTTP restent dans des services dédiés (un par ressource de l'API), 
 | Adapté à un MVP de 5 écrans | Oui | Surdimensionné | Oui |
 
 **Justification**
-- Les directives recommandent NgRx. SignalStore en est la version moderne, recommandée par l'équipe NgRx pour les nouveaux projets.
-- Il donne une structure commune à tous les stores (état, méthodes, valeurs calculées), sans le code répétitif du Store classique, surdimensionné pour 5 écrans.
-- Il repose sur les signals, le mécanisme de réactivité natif d'Angular : les composants lisent l'état comme de simples signals.
-- Il sépare clairement l'état (stores) des appels HTTP (services), ce qui facilite les tests et applique le principe de responsabilité unique.
+- Les signals sont le mécanisme de réactivité natif d'Angular, et un service exposant des signals est le pattern présenté par la documentation officielle.
+- Pour un état de cette taille (trois domaines, cinq écrans), une bibliothèque ajouterait une dépendance et une couche d'abstraction sans bénéfice concret, contraire à l'objectif d'un MVP simple.
+- Aucune API supplémentaire à apprendre : `signal()`, `computed()` et `asReadonly()` suffisent, et les stores se testent comme n'importe quel service.
+- La séparation état (stores) / appels HTTP (services) est conservée : elle facilite les tests et applique le principe de responsabilité unique.
+- Le choix est réversible : les deux approches reposant sur les signals, une migration vers NgRx SignalStore se ferait store par store, avec peu d'impact sur les composants.
 
 **Alternatives écartées**
-- *Services + signals* : plus simple et sans dépendance, mais aucune structure imposée, et écart avec la recommandation NgRx des directives.
+- *NgRx SignalStore* : structure commune à tous les stores et peu de code, mais une dépendance et une API (`signalStore`, `withState`, `withMethods`, `patchState`) en plus, pour un gain faible sur un état aussi réduit.
 - *NgRx Store classique* : très structuré, avec l'historique des actions dans les Redux DevTools, mais environ 4 fichiers par fonctionnalité et une courbe d'apprentissage élevée, disproportionnés pour ce MVP.
 
 **Inconvénients assumés**
-- Une dépendance supplémentaire (`@ngrx/signals`) à maintenir lors des montées de version d'Angular.
-- API à apprendre (`signalStore`, `withState`, `withMethods`, `withComputed`, `patchState`) ; moins de ressources en ligne que pour le Store classique.
+- Aucune structure imposée par un outil : les conventions (un store par domaine, signals exposés en lecture seule, modification uniquement par les méthodes du store) doivent être respectées par discipline et vérifiées en revue.
+- Pas d'historique des changements d'état comme avec les Redux DevTools.
+- Écart avec NgRx, cité dans les directives OpenClassrooms : assumé et justifié ci-dessus.
 
 #### Tests unitaires front-end
 
@@ -601,7 +603,7 @@ Récapitulatif des patterns qui découlent des choix précédents.
 | **Chaîne de filtres** | Back : filtres Spring Security (vérification du JWT) | Traiter la sécurité avant les contrôleurs, sans la mêler au métier | S |
 | **Intercepteur** | Front : `HttpInterceptorFn` (ajout du JWT, gestion des 401) | Traiter toutes les requêtes HTTP en un point unique | S, O |
 | **Guard** | Front : `authGuard`, `guestGuard` | Contrôler l'accès aux routes | S |
-| **Store** (état centralisé, flux unidirectionnel) | Front : NgRx SignalStore (`AuthStore`, `TopicStore`, `PostStore`) | Une seule source de vérité par domaine ; les composants lisent l'état et appellent des méthodes | S |
+| **Store** (état centralisé, flux unidirectionnel) | Front : services Angular avec signals (`AuthStore`, `TopicStore`, `PostStore`) | Une seule source de vérité par domaine ; les composants lisent l'état et appellent des méthodes | S |
 | **Observer** (réactivité) | Front : signals et `HttpClient` (Observables RxJS) | Mettre l'interface à jour automatiquement quand l'état change | — |
 | **Composants conteneurs / de présentation** | Front : pages de `features/` (conteneurs) et composants de `shared/` (présentation, `input()` / `output()`) | Réutiliser l'affichage (ex. carte de thème) sans dupliquer la logique | S, O |
 
@@ -656,7 +658,7 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Validation des données** : Bean Validation, `@ValidPassword` ; règles vérifiées côté front et côté back (voir [Librairies back-end](#librairies-back-end)).
 - [x] **Format des erreurs** : `ProblemDetail`, `@RestControllerAdvice` (voir [Librairies back-end](#librairies-back-end)).
 - [x] **Bibliothèque d'interface** : Angular Material, thème violet (voir [Interface utilisateur](#interface-utilisateur)).
-- [x] **Gestion de l'état front-end** : NgRx SignalStore (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
+- [x] **Gestion de l'état front-end** : services + signals (voir [Gestion de l'état front-end](#gestion-de-létat-front-end)).
 - [x] **Architecture front-end** : `core/` + `features/` + `shared/`, formulaires réactifs typés (voir [Architecture front-end](#architecture-front-end)).
 - [x] **Outils de build** : Maven (wrapper), Angular CLI, npm 11 (voir [Outils de build et conventions](#outils-de-build-et-conventions)).
 - [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
