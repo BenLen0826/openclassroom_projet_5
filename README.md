@@ -1,5 +1,26 @@
 # P6-Full-Stack-reseau-dev
 
+## Back
+
+API Spring Boot 4.1 (Java 21), dans le dossier `back/`.
+
+### Configuration
+
+Les identifiants de la base et la clé JWT sont lus dans des variables d'environnement. Pour un usage local :
+
+1. Copier `back/.env.example` en `back/.env` (ce fichier est ignoré par Git).
+2. Renseigner `DB_USERNAME`, `DB_PASSWORD` et `JWT_SECRET` (au moins 32 caractères).
+
+Une variable définie dans le système est prioritaire sur le fichier `.env`.
+
+### Commandes (depuis `back/`)
+
+| Commande | Rôle |
+|----------|------|
+| `./mvnw spring-boot:run` | Lance l'API sur `http://localhost:8080` |
+| `./mvnw test` | Lance les tests (base H2 en mémoire, profil `test`) et génère le rapport de couverture `target/site/jacoco/index.html` |
+| `./mvnw verify` | Idem, et échoue si la couverture des lignes est inférieure à 70 % |
+
 ## Front
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 22.2.6.
