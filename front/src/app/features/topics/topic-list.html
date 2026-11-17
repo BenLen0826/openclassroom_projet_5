@@ -1,0 +1,18 @@
+<h1>Thèmes</h1>
+
+@if (store.loading()) {
+  <p>Chargement…</p>
+} @else if (store.error(); as error) {
+  <p role="alert">{{ error }}</p>
+} @else {
+  <ul>
+    @for (topic of store.topics(); track topic.id) {
+      <li>
+        <h2>{{ topic.name }}</h2>
+        <p>{{ topic.description }}</p>
+      </li>
+    } @empty {
+      <li>Aucun thème disponible.</li>
+    }
+  </ul>
+}

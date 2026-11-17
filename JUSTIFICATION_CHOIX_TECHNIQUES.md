@@ -127,7 +127,7 @@ com.openclassrooms.mddapi/
 ├── mapper/       # Conversion entité <-> DTO
 ├── exception/    # Exceptions métier et gestion globale des erreurs
 ├── security/     # Configuration Spring Security, authentification
-└── config/       # Autres configurations (CORS…)
+└── config/       # Autres configurations (CORS, insertion des données de référence au démarrage…)
 ```
 
 **Organisation du front-end** (voir [Architecture front-end](#architecture-front-end)) :
@@ -402,14 +402,15 @@ Malgré son nom, ce module n'implique pas de serveur OAuth : il sert uniquement 
 
 | Critère | **Lombok, usage limité** (retenu) | Sans Lombok |
 |---------|-----------------------------------|-------------|
-| Principe | Annotations (`@Getter`, `@Setter`, `@NoArgsConstructor`, `@RequiredArgsConstructor`) qui génèrent le code à la compilation | Getters, setters et constructeurs écrits dans le fichier |
+| Principe | Annotations (`@Getter`, `@Setter`, `@NoArgsConstructor`, `@RequiredArgsConstructor`, `@Slf4j`) qui génèrent le code à la compilation | Getters, setters et constructeurs écrits dans le fichier |
 | Avantages | Classes courtes et lisibles ; très répandu en Spring | Aucune dépendance, tout le code est visible |
 | Inconvénients | Code invisible, plugin d'IDE ; `@Data` dangereux sur les entités JPA (`equals` / `hashCode` et `toString` qui chargent les relations ou bouclent) | Classes longues, bruit autour du métier |
 
 Règles retenues :
 - **DTO** : records Java (immuables, natifs), donc sans Lombok.
-- **Entités** : `@Getter`, `@Setter`, `@NoArgsConstructor` uniquement ; **`@Data` interdit**.
+- **Entités** : `@Getter`, `@Setter`, `@NoArgsConstructor` uniquement ; **`@Data` interdit**. `@Setter` seulement sur les entités modifiables par l'application (pas sur `Topic`, donnée de référence).
 - **Services et contrôleurs** : injection par constructeur via `@RequiredArgsConstructor`.
+- **Logs** : `@Slf4j` déclare le logger SLF4J de la classe (pas de code répétitif `LoggerFactory.getLogger(...)`).
 
 **Conversion entité ↔ DTO**
 
@@ -452,7 +453,7 @@ Les erreurs sont centralisées dans un **`@RestControllerAdvice`** (package `exc
 | Avantages | Presque aucune configuration ; endpoints testables avec le JWT ; spécification importable dans Postman | Module Spring ; documentation forcément exacte | Aucun outil |
 | Inconvénients | Librairie tierce ; annotations dans les contrôleurs | Un test documenté par endpoint, configuration Asciidoctor, pas d'interface interactive | Se désynchronise du code |
 
-En complément : une **collection Postman** pour les tests manuels et le **tableau des endpoints dans le README**.
+En complément : le **tableau des endpoints dans le README**. Une **collection Postman** sert aussi aux tests manuels pendant le développement : c'est un **outil personnel**, non livré (non versionné), Swagger UI restant la documentation interactive de référence.
 
 **Inconvénients assumés**
 - springdoc-openapi est une librairie tierce, alors que les contraintes privilégient les modules Spring. Spring REST Docs, seul équivalent Spring, répond à un autre besoin (documentation tirée des tests) pour un coût bien supérieur, disproportionné pour un MVP. La version de springdoc compatible avec Spring Boot 4 sera vérifiée à l'installation.
@@ -664,7 +665,7 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
 - [x] **Tests back et e2e** : JUnit + Mockito, `@SpringBootTest` + MockMvc, H2, JaCoCo, Cypress (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)).
 - [x] **Modèle de données et endpoints** : 4 entités, abonnements en `@ManyToMany`, 12 endpoints (voir [2.3 API et schémas de données](#23-api-et-schémas-de-données)).
-- [x] **Documentation de l'API** : springdoc-openapi, collection Postman, tableau dans le README (voir [Librairies back-end](#librairies-back-end)).
+- [x] **Documentation de l'API** : springdoc-openapi, tableau dans le README ; collection Postman en outil personnel, non livré (voir [Librairies back-end](#librairies-back-end)).
 - [x] **Design patterns** : récapitulatif (voir [Design patterns](#design-patterns)).
 - [x] **Communication front / back** : JSON, Bearer JWT, `ProblemDetail`, CORS (voir [Communication front-end / back-end](#communication-front-end--back-end)).
 - [x] **Conventions de code** : Prettier, ESLint, SonarLint, code en anglais, commits normés (voir [Outils de build et conventions](#outils-de-build-et-conventions)).
@@ -723,9 +724,9 @@ Les spécifications ne prévoient ni suppression ni back-office : aucune cascade
 | Sens des relations | `@ManyToOne` uniquement (article → auteur et thème, commentaire → auteur et article), plus `User.subscriptions` ; les commentaires d'un article sont lus par une requête du repository | `@OneToMany` bidirectionnel : risque de boucles dans le JSON et de requêtes N+1, sans besoin réel |
 | Identifiants | `Long` auto-incrémentés par MySQL (`IDENTITY`) | UUID : utile en système distribué, plus lourd en index |
 | Dates | `Instant` (UTC), rempli par **Spring Data JPA Auditing** (`@CreatedDate`, `@LastModifiedDate`) ; affiché dans le fuseau du navigateur par le pipe `date` d'Angular | `@CreationTimestamp` (spécifique à Hibernate, alors que les modules Spring sont prioritaires) ; `LocalDateTime` (sans fuseau, ambigu) |
-| Thèmes | Données de référence insérées au démarrage (étape 3) ; aucun endpoint de création, faute de back-office | — |
+| Thèmes | Données de référence insérées au démarrage par une classe Java (`ApplicationRunner`, étape 4), uniquement si elles sont absentes ; aucun endpoint de création, faute de back-office | Script `data.sql` |
 | Sujet (`sub`) du JWT | Id de l'utilisateur | E-mail ou nom d'utilisateur : modifiables dans le profil, ils invalideraient le token |
-| Tailles des champs | E-mail 255, nom d'utilisateur 50, titre 255, contenus en `TEXT` ; validation `@NotBlank` + `@Size` alignée sur les colonnes | Les spécifications ne fixent pas de limite : aucune autre règle n'est inventée |
+| Tailles des champs | E-mail 255, nom d'utilisateur 50, titre 255, nom du thème 50, description du thème 255, contenus en `TEXT` ; validation `@NotBlank` + `@Size` alignée sur les colonnes | Les spécifications ne fixent pas de limite : aucune autre règle n'est inventée |
 
 #### Endpoints
 
@@ -812,6 +813,9 @@ Outils retenus à l'étape 2 (voir [Tests back-end et end-to-end](#tests-back-en
 | Comparaison des librairies back-end (Lombok, mapping, validation, format des erreurs, documentation de l'API) | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
 | Proposition du modèle de données, du diagramme et de la liste des endpoints | Claude Code | Disposer d'une première conception à confronter aux spécifications et aux maquettes | [À compléter] |
 | Comparaison des options front-end, de test, de build et de conventions | Claude Code | Préparer la décision avec les avantages et inconvénients de chaque option | [À compléter] |
+| Étape 4, back de la liste des thèmes : entité `Topic`, repository, service, DTO, mapper MapStruct, contrôleur, insertion des thèmes au démarrage, sécurité minimale et CORS | Claude Code | Produire rapidement une première tranche qui traverse toutes les couches | Relecture du code. Première version de l'insertion fondée sur des entités partagées dans un champ `static` (objets modifiables) : remplacée par un `record TopicSeed`. `SecurityConfig` jugée trop large (CSRF, sessions, Swagger, réponse 401 anticipant l'étape 5) : réduite au strict nécessaire. Tests unitaires et d'intégration générés : retirés et reportés à l'étape 7, pour avancer étape par étape. Essai réel sur MySQL (table créée, 8 thèmes, idempotence au 2e démarrage, accents). Revue indépendante : erreur serveur masquée en 403 (renvoi `/error` bloqué) corrigée, setters inutiles retirés de `Topic`, longueurs de colonnes fixées |
+| Étape 4, front de la liste des thèmes : modèle `Topic`, `TopicService` (HTTP), `TopicStore` (signals), page `TopicList` chargée à la demande | Claude Code | Relier le front à l'API sur une première page, sans mise en forme | Respect de l'arborescence du document (`core/models`, `core/services`, `core/stores`, `features/topics`) et de la séparation service HTTP / store. Lint, build, tests et Prettier OK. Essai réel front + back sur MySQL : 8 thèmes affichés, triés, accents corrects, en-tête CORS présent ; API arrêtée : message d'erreur affiché à l'utilisateur. Question de l'utilisateur sur `app.config.ts` : l'IA avait ajouté `provideHttpClient(withFetch())` par habitude des versions précédentes ; vérification dans la documentation d'Angular 22 installée : `HttpClient` est fourni par défaut et `withFetch` est déprécié. Ligne retirée (elle reviendra à l'étape 5 pour les intercepteurs), nouvel essai réel OK. Commentaire d'origine en anglais de `app.routes.ts` remplacé |
+| Étape 4, tests de la liste des thèmes : back (`TopicServiceTest`, `TopicDataInitializerTest` avec Mockito ; `TopicControllerIntegrationTest` avec `@SpringBootTest` + MockMvc sur H2) et front (`TopicService` avec `HttpTestingController`, `TopicStore`, page `TopicList`) | Claude Code | Couvrir la première tranche de bout en bout par des tests isolés, nommés clairement, structurés en Arrange–Act–Assert | Revue technique indépendante : `mvnw verify` ne passait que grâce à des mesures JaCoCo périmées (`target/jacoco.exec` gardait la couverture des tests retirés) ; confirmé avec `mvnw clean verify` (≈ 64 %, échec). Tests remis : test « autres routes → 401 » retiré (le 401 n'existera qu'avec le JWT de l'étape 5). Résultat : `clean verify` OK, 9 tests back, 54 lignes couvertes sur 56 ; 10 tests front, 93,7 % des instructions. Contrôle que les tests détectent une erreur : tri changé en `Sort.by("id")` → 3 tests back en échec ; message « liste vide » modifié → 1 test front en échec ; sources restaurées |
 
 ---
 
