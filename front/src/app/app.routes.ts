@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
 import { Home } from './pages/home/home';
 
-// consider a guard combined with canMatch / canActivate route option
-// to manage unauthenticated user to access private routes
-export const routes: Routes = [{ path: '', component: Home }];
+// Les guards (routes privées / pages réservées aux visiteurs) arrivent avec l'authentification, à l'étape 5.
+export const routes: Routes = [
+  { path: '', component: Home },
+  // Page chargée à la demande ; publique tant que l'authentification n'existe pas (étape 5).
+  {
+    path: 'topics',
+    loadComponent: () => import('./features/topics/topic-list').then((m) => m.TopicList),
+  },
+];
