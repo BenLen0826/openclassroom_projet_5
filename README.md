@@ -1,4 +1,4 @@
-# P6-Full-Stack-reseau-dev
+# MDD (Monde de Dév)
 
 ## Back
 
@@ -37,9 +37,9 @@ Une variable définie dans le système est prioritaire sur le fichier `.env`.
 
 ## Front
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 22.2.6.
+Application Angular 22 (Angular CLI 22.2.6, Angular Material), dans le dossier `front/`.
 
-Don't forget to install your node_modules before starting (`npm install`).
+Installer les dépendances avant le premier lancement : `npm install`.
 
 ### Configuration
 
@@ -56,21 +56,3 @@ L'URL de l'API est définie dans `src/environments/environment.development.ts` (
 | `npm run build` | Compile l'application dans `dist/` |
 | `npm run cypress:run` | Lance les tests end-to-end Cypress dans Chrome, sans interface (l'application doit tourner : `npm start` dans un autre terminal) |
 | `npm run cypress:open` | Ouvre l'interface de Cypress pour lancer et suivre les tests pas à pas |
-
-### Development server
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-### Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-### Where to start
-
-As you may have seen if you already started the app, a simple home page containing a logo, a title and a button is available. If you take a look at its code (in `src/app/pages/home/home.html`) you will see that an external UI library is already configured in the project.
-
-This library is `@angular/material`, it's one of the most famous in the angular ecosystem. As you can see on their docs (https://material.angular.io/), it contains a lot of highly customizable components that will help you design your interfaces quickly.
-
-Note: I recommend to use material however it's not mandatory, if you prefer you can get rid of it.
-
-Good luck!
