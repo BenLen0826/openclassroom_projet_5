@@ -453,7 +453,7 @@ Les erreurs sont centralisées dans un **`@RestControllerAdvice`** (package `exc
 | Avantages | Presque aucune configuration ; endpoints testables avec le JWT ; spécification importable dans Postman | Module Spring ; documentation forcément exacte | Aucun outil |
 | Inconvénients | Librairie tierce ; annotations dans les contrôleurs | Un test documenté par endpoint, configuration Asciidoctor, pas d'interface interactive | Se désynchronise du code |
 
-En complément : une **collection Postman** pour les tests manuels et le **tableau des endpoints dans le README**.
+En complément : le **tableau des endpoints dans le README**. Une **collection Postman** sert aussi aux tests manuels pendant le développement : c'est un **outil personnel**, non livré (non versionné), Swagger UI restant la documentation interactive de référence.
 
 **Inconvénients assumés**
 - springdoc-openapi est une librairie tierce, alors que les contraintes privilégient les modules Spring. Spring REST Docs, seul équivalent Spring, répond à un autre besoin (documentation tirée des tests) pour un coût bien supérieur, disproportionné pour un MVP. La version de springdoc compatible avec Spring Boot 4 sera vérifiée à l'installation.
@@ -665,7 +665,7 @@ Chaque décision rejoint le tableau des choix une fois tranchée. La piste indiq
 - [x] **Tests unitaires front** : Vitest (voir [Tests unitaires front-end](#tests-unitaires-front-end)).
 - [x] **Tests back et e2e** : JUnit + Mockito, `@SpringBootTest` + MockMvc, H2, JaCoCo, Cypress (voir [Tests back-end et end-to-end](#tests-back-end-et-end-to-end)).
 - [x] **Modèle de données et endpoints** : 4 entités, abonnements en `@ManyToMany`, 12 endpoints (voir [2.3 API et schémas de données](#23-api-et-schémas-de-données)).
-- [x] **Documentation de l'API** : springdoc-openapi, collection Postman, tableau dans le README (voir [Librairies back-end](#librairies-back-end)).
+- [x] **Documentation de l'API** : springdoc-openapi, tableau dans le README ; collection Postman en outil personnel, non livré (voir [Librairies back-end](#librairies-back-end)).
 - [x] **Design patterns** : récapitulatif (voir [Design patterns](#design-patterns)).
 - [x] **Communication front / back** : JSON, Bearer JWT, `ProblemDetail`, CORS (voir [Communication front-end / back-end](#communication-front-end--back-end)).
 - [x] **Conventions de code** : Prettier, ESLint, SonarLint, code en anglais, commits normés (voir [Outils de build et conventions](#outils-de-build-et-conventions)).
