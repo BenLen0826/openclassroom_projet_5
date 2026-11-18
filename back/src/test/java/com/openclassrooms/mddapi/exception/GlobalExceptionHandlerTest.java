@@ -44,6 +44,33 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleUnknownUser_returns401() {
+        // Act
+        ProblemDetail problem = handler.handleUnknownUser(new UnknownUserException());
+
+        // Assert
+        assertThat(problem.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(problem.getDetail()).isEqualTo("Session invalide. Reconnectez-vous.");
+    }
+
+    @Test
+    void handleTopicNotFound_returns404() {
+        // Act
+        ProblemDetail problem = handler.handleTopicNotFound(new TopicNotFoundException());
+
+        // Assert
+        assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(problem.getDetail()).isEqualTo("Thème introuvable.");
+    }
+
+    @Test
+    void handleDuplicateSubscription_returns204() {
+        // L'abonnement existe déjà (requête simultanée) : le résultat voulu est atteint
+        assertThat(handler.handleDuplicateSubscription(new DuplicateSubscriptionException()).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
     void handleUnexpected_returnsGenericMessageWithoutInternalDetail() {
         // Act
         ProblemDetail problem = handler.handleUnexpected(new RuntimeException("boom"));

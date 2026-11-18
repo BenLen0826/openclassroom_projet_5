@@ -1,0 +1,27 @@
+<h1>Profil</h1>
+
+<h2>Abonnements</h2>
+
+@if (store.actionError(); as actionError) {
+  <p role="alert">{{ actionError }}</p>
+}
+
+@if (store.loading() && store.topics().length === 0) {
+  <p>Chargement…</p>
+} @else if (store.error(); as error) {
+  <p role="alert">{{ error }}</p>
+} @else {
+  @for (topic of store.subscribedTopics(); track topic.id) {
+    <app-topic-card [topic]="topic">
+      <button
+        type="button"
+        [disabled]="store.isPending(topic.id)"
+        (click)="store.unsubscribe(topic.id)"
+      >
+        Se désabonner
+      </button>
+    </app-topic-card>
+  } @empty {
+    <p>Vous n'êtes abonné à aucun thème.</p>
+  }
+}

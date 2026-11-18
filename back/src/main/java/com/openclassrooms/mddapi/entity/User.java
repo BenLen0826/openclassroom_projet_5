@@ -3,9 +3,13 @@ package com.openclassrooms.mddapi.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,6 +20,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Utilisateur inscrit.
@@ -55,6 +61,19 @@ public class User {
     @LastModifiedDate
     @Column(nullable = false)
     private Instant updatedAt;
+
+    /**
+     * Thèmes suivis (table {@code subscriptions}, clé primaire composée : un double
+     * abonnement est impossible en base). Chargés seulement à la demande.
+     * <p>
+     * {@code Topic} n'a pas d'{@code equals} : les comparaisons se font par id.
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "subscriptions",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "topic_id"))
+    private Set<Topic> subscriptions = new HashSet<>();
 
     public User(String username, String email, String password) {
         this.username = username;
