@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, map, tap } from 'rxjs';
-import { RegisterRequest } from '../models/auth';
+import { LoginRequest, RegisterRequest } from '../models/auth';
 import { AuthService } from '../services/auth.service';
 
 /** Clé du token dans `localStorage` : il survit à la fermeture du navigateur (connexion persistante). */
@@ -32,6 +32,21 @@ export class AuthStore {
     );
   }
 
+  /** Connecte l'utilisateur (e-mail ou nom d'utilisateur). Même principe que `register`. */
+  login(request: LoginRequest): Observable<void> {
+    return this.authService.login(request).pipe(
+      tap((response) => this.saveToken(response.token)),
+      map(() => undefined),
+    );
+  }
+
+  /** Déconnecte l'utilisateur : le token est oublié (signal et `localStorage`). */
+  logout(): void {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    this._token.set(null);
+  }
+
+  /** Enregistre le token reçu : signal + `localStorage`. */
   private saveToken(token: string): void {
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
     this._token.set(token);

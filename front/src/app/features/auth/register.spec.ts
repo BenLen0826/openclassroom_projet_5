@@ -102,6 +102,18 @@ describe('Register', () => {
     expect(errorUnder('username')).toBe('Le nom est refusé par le serveur.');
   });
 
+  it('removes the general message as soon as the user edits a field', async () => {
+    // Arrange : erreur inattendue, message général affiché
+    await submitWith(httpError(500, null));
+    expect(page.querySelector('[role="alert"]')).not.toBeNull();
+
+    // Act
+    await type('username', 'bobby');
+
+    // Assert
+    expect(page.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it('shows a general message on an unexpected error', async () => {
     await submitWith(httpError(500, null));
 

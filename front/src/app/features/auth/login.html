@@ -1,0 +1,37 @@
+<h1>Se connecter</h1>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div>
+    <label for="identifier">E-mail ou nom d'utilisateur</label>
+    <input
+      id="identifier"
+      name="identifier"
+      type="text"
+      formControlName="identifier"
+      autocomplete="username"
+    />
+    @if (errorFor('identifier'); as message) {
+      <p id="identifier-error">{{ message }}</p>
+    }
+  </div>
+
+  <div>
+    <label for="password">Mot de passe</label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      formControlName="password"
+      autocomplete="current-password"
+    />
+    @if (errorFor('password'); as message) {
+      <p id="password-error">{{ message }}</p>
+    }
+  </div>
+
+  @if (generalError(); as message) {
+    <p role="alert">{{ message }}</p>
+  }
+
+  <button type="submit" [disabled]="form.invalid || submitting()">Se connecter</button>
+</form>

@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { RegisterRequest } from '../models/auth';
+import { LoginRequest, RegisterRequest } from '../models/auth';
 import { AuthService } from '../services/auth.service';
 import { AuthStore, TOKEN_STORAGE_KEY } from './auth.store';
 
 describe('AuthStore', () => {
   const request: RegisterRequest = { username: 'bob', email: 'bob@mail.fr', password: 'Secret1!' };
-  let authService: { register: ReturnType<typeof vi.fn> };
+  let authService: { register: ReturnType<typeof vi.fn>; login: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     localStorage.clear();
-    authService = { register: vi.fn() };
+    authService = { register: vi.fn(), login: vi.fn() };
     TestBed.configureTestingModule({
       providers: [{ provide: AuthService, useValue: authService }],
     });
@@ -53,6 +53,51 @@ describe('AuthStore', () => {
     expect(store.token()).toBe('jwt');
     expect(store.isAuthenticated()).toBe(true);
     expect(localStorage.getItem('mdd_token')).toBe('jwt');
+  });
+
+  it('login stores the token in the signal and in localStorage', () => {
+    // Arrange
+    const credentials: LoginRequest = { identifier: 'bob', password: 'Secret1!' };
+    authService.login.mockReturnValue(of({ token: 'jwt' }));
+    const store = TestBed.inject(AuthStore);
+
+    // Act
+    store.login(credentials).subscribe();
+
+    // Assert
+    expect(authService.login).toHaveBeenCalledWith(credentials);
+    expect(store.token()).toBe('jwt');
+    expect(localStorage.getItem('mdd_token')).toBe('jwt');
+  });
+
+  it('login relays the error and stores nothing', () => {
+    // Arrange
+    const failure = new Error('401');
+    authService.login.mockReturnValue(throwError(() => failure));
+    const store = TestBed.inject(AuthStore);
+    const error = vi.fn();
+
+    // Act
+    store.login({ identifier: 'bob', password: 'Mauvais1!' }).subscribe({ error });
+
+    // Assert
+    expect(error).toHaveBeenCalledWith(failure);
+    expect(store.token()).toBeNull();
+    expect(localStorage.getItem('mdd_token')).toBeNull();
+  });
+
+  it('logout clears the token and localStorage', () => {
+    // Arrange
+    localStorage.setItem('mdd_token', 'saved-jwt');
+    const store = TestBed.inject(AuthStore);
+
+    // Act
+    store.logout();
+
+    // Assert
+    expect(store.token()).toBeNull();
+    expect(store.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem('mdd_token')).toBeNull();
   });
 
   it('register relays the error and stores nothing', () => {

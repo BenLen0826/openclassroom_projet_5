@@ -24,7 +24,8 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
 
     public static final String MAX_BYTES_MESSAGE = "Mot de passe trop long.";
 
-    private static final int BCRYPT_MAX_BYTES = 72;
+    /** BCrypt ne prend en compte que les 72 premiers octets du mot de passe. */
+    public static final int BCRYPT_MAX_BYTES = 72;
 
     private static final Pattern PASSWORD_PATTERN =
             Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,72}$");

@@ -55,6 +55,25 @@ class UserRepositoryTest {
     }
 
     @Test
+    void findByUsernameIgnoreCase_findsOtherCase() {
+        // Arrange
+        User bob = userRepository.saveAndFlush(new User("bob", "bob@mail.fr", "hash"));
+
+        // Act + Assert
+        assertThat(userRepository.findByUsernameIgnoreCase("BOB")).contains(bob);
+    }
+
+    @Test
+    void findByEmail_returnsEmptyForUnknownEmail() {
+        // Arrange
+        userRepository.saveAndFlush(new User("bob", "bob@mail.fr", "hash"));
+
+        // Act + Assert
+        assertThat(userRepository.findByEmail("alice@mail.fr")).isEmpty();
+        assertThat(userRepository.findByEmail("bob@mail.fr")).isPresent();
+    }
+
+    @Test
     void existsByEmail_matchesExactEmail() {
         // Arrange
         userRepository.saveAndFlush(new User("bob", "bob@mail.fr", "hash"));

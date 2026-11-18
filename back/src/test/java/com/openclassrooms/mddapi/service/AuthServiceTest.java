@@ -1,10 +1,12 @@
 package com.openclassrooms.mddapi.service;
 
 import com.openclassrooms.mddapi.dto.AuthResponse;
+import com.openclassrooms.mddapi.dto.LoginRequest;
 import com.openclassrooms.mddapi.dto.RegisterRequest;
 import com.openclassrooms.mddapi.entity.User;
 import com.openclassrooms.mddapi.exception.AccountAlreadyExistsException;
 import com.openclassrooms.mddapi.exception.EmailAlreadyUsedException;
+import com.openclassrooms.mddapi.exception.InvalidCredentialsException;
 import com.openclassrooms.mddapi.exception.UsernameAlreadyUsedException;
 import com.openclassrooms.mddapi.repository.UserRepository;
 import com.openclassrooms.mddapi.security.JwtService;
@@ -17,9 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -100,5 +105,100 @@ class AuthServiceTest {
     @Test
     void registerRequest_toStringNeverContainsThePassword() {
         assertThat(new RegisterRequest("Bob", "bob@mail.fr", "Secret1!").toString()).doesNotContain("Secret1!");
+    }
+
+    // --- Connexion ---
+
+    private static final String LOGIN_ERROR = "Identifiant ou mot de passe incorrect.";
+
+    @Test
+    void login_withEmail_returnsToken() {
+        // Arrange
+        User bob = new User("Bob", "bob@mail.fr", "hash");
+        when(userRepository.findByEmail("bob@mail.fr")).thenReturn(Optional.of(bob));
+        when(passwordEncoder.matches("Secret1!", "hash")).thenReturn(true);
+        when(jwtService.generateToken(bob)).thenReturn("jwt");
+
+        // Act
+        AuthResponse response = authService.login(new LoginRequest("  BOB@Mail.FR ", "Secret1!"));
+
+        // Assert
+        assertThat(response).isEqualTo(new AuthResponse("jwt"));
+        verify(userRepository, never()).findByUsernameIgnoreCase(any());
+    }
+
+    @Test
+    void login_withUsername_returnsToken() {
+        // Arrange
+        User bob = new User("Bob", "bob@mail.fr", "hash");
+        when(userRepository.findByEmail("bob")).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameIgnoreCase("bob")).thenReturn(Optional.of(bob));
+        when(passwordEncoder.matches("Secret1!", "hash")).thenReturn(true);
+        when(jwtService.generateToken(bob)).thenReturn("jwt");
+
+        // Act
+        AuthResponse response = authService.login(new LoginRequest(" bob ", "Secret1!"));
+
+        // Assert
+        assertThat(response).isEqualTo(new AuthResponse("jwt"));
+    }
+
+    @Test
+    void login_prefersEmailAccountWhenUsernameEqualsAnotherEmail() {
+        // Arrange : le nom d'utilisateur de « autre » est identique à l'e-mail de « bob »
+        User emailUser = new User("bob", "bob@mail.fr", "hash");
+        User usernameUser = new User("bob@mail.fr", "autre@mail.fr", "hash");
+        when(userRepository.findByEmail("bob@mail.fr")).thenReturn(Optional.of(emailUser));
+        lenient().when(userRepository.findByUsernameIgnoreCase("bob@mail.fr")).thenReturn(Optional.of(usernameUser));
+        when(passwordEncoder.matches("Secret1!", "hash")).thenReturn(true);
+
+        // Act
+        authService.login(new LoginRequest("bob@mail.fr", "Secret1!"));
+
+        // Assert
+        verify(jwtService).generateToken(emailUser);
+    }
+
+    @Test
+    void login_withWrongPassword_throwsInvalidCredentials() {
+        // Arrange
+        when(userRepository.findByEmail("bob@mail.fr")).thenReturn(Optional.of(new User("bob", "bob@mail.fr", "hash")));
+        when(passwordEncoder.matches("Mauvais1!", "hash")).thenReturn(false);
+
+        // Act + Assert
+        assertThatThrownBy(() -> authService.login(new LoginRequest("bob@mail.fr", "Mauvais1!")))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage(LOGIN_ERROR);
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void login_withUnknownUser_throwsInvalidCredentials() {
+        // Arrange
+        when(userRepository.findByEmail("inconnu")).thenReturn(Optional.empty());
+        when(userRepository.findByUsernameIgnoreCase("inconnu")).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> authService.login(new LoginRequest("inconnu", "Secret1!")))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage(LOGIN_ERROR);
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void login_withPasswordOver72Bytes_throwsInvalidCredentials() {
+        // Arrange : 39 caractères mais 74 octets ; BCrypt ne lit que 72 octets
+        when(userRepository.findByEmail("bob@mail.fr")).thenReturn(Optional.of(new User("bob", "bob@mail.fr", "hash")));
+
+        // Act + Assert
+        assertThatThrownBy(() -> authService.login(new LoginRequest("bob@mail.fr", "Aa1!" + "é".repeat(35))))
+                .isInstanceOf(InvalidCredentialsException.class);
+        verify(passwordEncoder, never()).matches(any(), any());
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void loginRequest_toStringNeverContainsThePassword() {
+        assertThat(new LoginRequest("bob", "Secret1!").toString()).doesNotContain("Secret1!");
     }
 }

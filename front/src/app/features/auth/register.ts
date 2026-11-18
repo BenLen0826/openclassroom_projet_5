@@ -58,6 +58,8 @@ export class Register {
         .pipe(takeUntilDestroyed())
         .subscribe(() => this.clearServerError(field));
     }
+    // Le message général (ex. erreur inattendue) disparaît dès que l'utilisateur modifie un champ
+    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.generalError.set(null));
   }
 
   /** Message à afficher sous un champ : celui du serveur, sinon celui de la validation locale. */
