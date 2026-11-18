@@ -15,6 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsernameIgnoreCase(String username);
 
+    /** Utilisé par la modification du profil : garder son propre e-mail n'est pas un conflit. */
+    boolean existsByEmailAndIdNot(String email, Long id);
+
+    boolean existsByUsernameIgnoreCaseAndIdNot(String username, Long id);
+
     Optional<User> findByEmail(String email);
 
     Optional<User> findByUsernameIgnoreCase(String username);
