@@ -25,9 +25,9 @@ describe('guestGuard', () => {
     expect(runGuard(null)).toBe(true);
   });
 
-  it('redirects an authenticated user to /topics', () => {
+  it('redirects an authenticated user to /posts', () => {
     const result = runGuard('jwt');
 
-    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/topics');
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/posts');
   });
 });

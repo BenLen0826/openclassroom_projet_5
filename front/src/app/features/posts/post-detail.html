@@ -1,0 +1,15 @@
+<a routerLink="/posts">Retour</a>
+
+@if (error(); as message) {
+  <p role="alert">{{ message }}</p>
+} @else if (post(); as post) {
+  <article>
+    <h1>{{ post.title }}</h1>
+    <p>
+      {{ post.createdAt | date: 'dd/MM/yyyy' }} · {{ post.authorUsername }} · {{ post.topicName }}
+    </p>
+    <p>{{ post.content }}</p>
+  </article>
+} @else {
+  <p>Chargement…</p>
+}

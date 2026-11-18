@@ -54,7 +54,7 @@ export class Login {
     this.generalError.set(null);
 
     this.authStore.login(this.form.getRawValue()).subscribe({
-      next: () => void this.router.navigateByUrl('/topics'),
+      next: () => void this.router.navigateByUrl('/posts'),
       error: (error: unknown) => {
         this.submitting.set(false);
         // 401 : message unique du back (« Identifiant ou mot de passe incorrect. »)

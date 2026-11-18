@@ -12,7 +12,7 @@ export interface ServerErrors {
  * Convertit une erreur HTTP de l'API (`ProblemDetail`) en messages à afficher :
  * - `400` avec `errors` : un message par champ ;
  * - `409` avec `field` : le message sous ce champ (ex. e-mail déjà utilisé) ;
- * - `409` sans `field` : le message du serveur en message général ;
+ * - `409` sans `field`, ou `404` : le message du serveur en message général ;
  * - toute autre erreur : un message général, sans détail technique.
  */
 export function readServerErrors(error: unknown): ServerErrors {
@@ -25,7 +25,9 @@ export function readServerErrors(error: unknown): ServerErrors {
   if (status === 409 && body?.field) {
     return { fields: { [body.field]: body.detail }, general: null };
   }
-  if (status === 409 && body?.detail) {
+  // 409 sans champ, ou 404 (ex. thème supprimé entre-temps) : le message du serveur est
+  // destiné à l'utilisateur (aucune trace technique dans les ProblemDetail de l'API)
+  if ((status === 409 || status === 404) && body?.detail) {
     return { fields: {}, general: body.detail };
   }
   return { fields: {}, general: GENERAL_ERROR };

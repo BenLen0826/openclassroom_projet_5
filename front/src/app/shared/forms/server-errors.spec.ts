@@ -31,6 +31,12 @@ describe('readServerErrors', () => {
     });
   });
 
+  it('shows the server message of a 404 (e.g. topic deleted in the meantime)', () => {
+    const result = readServerErrors(httpError(404, { detail: 'Thème introuvable.' }));
+
+    expect(result).toEqual({ fields: {}, general: 'Thème introuvable.' });
+  });
+
   it('uses the general message for any other error', () => {
     expect(readServerErrors(httpError(500, null))).toEqual({ fields: {}, general: GENERAL_ERROR });
     expect(readServerErrors(new Error('réseau'))).toEqual({ fields: {}, general: GENERAL_ERROR });

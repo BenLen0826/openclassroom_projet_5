@@ -1,0 +1,26 @@
+<h1>Articles</h1>
+
+<a routerLink="/posts/new">Créer un article</a>
+<!-- ↓ : du plus récent au plus ancien ; ↑ : du plus ancien au plus récent -->
+<button type="button" (click)="store.toggleOrder()">
+  Trier par date {{ store.order() === 'desc' ? '↓' : '↑' }}
+</button>
+
+@if (store.loading() && store.posts().length === 0) {
+  <p>Chargement…</p>
+} @else if (store.error(); as error) {
+  <p role="alert">{{ error }}</p>
+} @else {
+  @for (post of store.posts(); track post.id) {
+    <article>
+      <a [routerLink]="['/posts', post.id]">
+        <h2>{{ post.title }}</h2>
+      </a>
+      <p>{{ post.createdAt | date: 'dd/MM/yyyy' }} · {{ post.authorUsername }}</p>
+      <!-- Contenu complet : l'extrait sera obtenu en CSS à l'étape 6 -->
+      <p>{{ post.content }}</p>
+    </article>
+  } @empty {
+    <p>Aucun article pour l'instant. Abonnez-vous à des thèmes pour remplir votre fil.</p>
+  }
+}

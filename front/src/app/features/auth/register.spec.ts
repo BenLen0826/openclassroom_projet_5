@@ -69,7 +69,7 @@ describe('Register', () => {
     expect(errorUnder('password')).toBe(PASSWORD_RULE_MESSAGE);
   });
 
-  it('navigates to /topics after a successful registration', async () => {
+  it('navigates to /posts after a successful registration', async () => {
     await submitWith(of({ token: 'jwt' }));
 
     expect(authService.register).toHaveBeenCalledWith({
@@ -78,7 +78,7 @@ describe('Register', () => {
       password: 'Secret1!',
     });
     expect(localStorage.getItem('mdd_token')).toBe('jwt');
-    expect(navigateByUrl).toHaveBeenCalledWith('/topics');
+    expect(navigateByUrl).toHaveBeenCalledWith('/posts');
   });
 
   it('shows a 409 message under the email field', async () => {
