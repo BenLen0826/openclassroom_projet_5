@@ -2,7 +2,10 @@ package com.openclassrooms.mddapi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+// Active Spring Data JPA Auditing : remplit @CreatedDate et @LastModifiedDate des entités
+@EnableJpaAuditing
 @SpringBootApplication
 public class MddApiApplication {
 

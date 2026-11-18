@@ -1,0 +1,113 @@
+package com.openclassrooms.mddapi.security;
+
+import com.openclassrooms.mddapi.entity.User;
+import com.openclassrooms.mddapi.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.Duration;
+import java.time.Instant;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Règles de sécurité. Aucune route métier protégée n'existe encore : on vérifie
+ * une URL de contrôle non publique ({@code /api/protected-check}). Avec un token
+ * valide, la sécurité laisse passer et la route inexistante donne {@code 404}.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class SecurityIntegrationTest {
+
+    private static final String PROTECTED_URL = "/api/protected-check";
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
+
+    @BeforeEach
+    void cleanDatabase() {
+        userRepository.deleteAll();
+    }
+
+    @Test
+    void protectedRoute_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(PROTECTED_URL))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().exists(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @Test
+    void protectedRoute_withValidToken_isLetThrough() throws Exception {
+        // Arrange
+        User user = userRepository.save(new User("bob", "bob@mail.fr", "hash"));
+        String token = jwtService.generateToken(user);
+
+        // Act + Assert
+        mockMvc.perform(get(PROTECTED_URL).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void protectedRoute_withInvalidToken_returns401() throws Exception {
+        mockMvc.perform(get(PROTECTED_URL).header(HttpHeaders.AUTHORIZATION, "Bearer abc.def.ghi"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void protectedRoute_withExpiredToken_returns401() throws Exception {
+        // Arrange : expiré depuis 1 h, au-delà des 60 s de tolérance du décodeur
+        Instant now = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .subject("1")
+                .issuedAt(now.minus(Duration.ofHours(2)))
+                .expiresAt(now.minus(Duration.ofHours(1)))
+                .build();
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(
+                JwsHeader.with(MacAlgorithm.HS256).build(), claims)).getTokenValue();
+
+        // Act + Assert
+        mockMvc.perform(get(PROTECTED_URL).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void register_isPublicWithoutCsrfTokenAndCreatesNoSession() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username": "bob", "email": "bob@mail.fr", "password": "Secret1!"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
+    }
+
+    @Test
+    void swaggerDocumentation_isPublic() throws Exception {
+        mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
+    }
+}
