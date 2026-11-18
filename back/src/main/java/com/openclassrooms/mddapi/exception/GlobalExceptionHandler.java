@@ -63,6 +63,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(UnknownUserException.class)
+    public ProblemDetail handleUnknownUser(UnknownUserException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setTitle("Authentification refusée");
+        return problem;
+    }
+
+    @ExceptionHandler(TopicNotFoundException.class)
+    public ProblemDetail handleTopicNotFound(TopicNotFoundException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Ressource introuvable");
+        return problem;
+    }
+
+    /** Abonnement simultané en double : l'abonnement existe, la demande est satisfaite. */
+    @ExceptionHandler(DuplicateSubscriptionException.class)
+    public ResponseEntity<Void> handleDuplicateSubscription(DuplicateSubscriptionException ex) {
+        return ResponseEntity.noContent().build();
+    }
+
     /** Toute autre erreur : message générique, détail technique uniquement dans le log. */
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception ex) {

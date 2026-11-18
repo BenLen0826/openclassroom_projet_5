@@ -1,5 +1,11 @@
 package com.openclassrooms.mddapi.controller;
 
+import com.openclassrooms.mddapi.entity.Topic;
+import com.openclassrooms.mddapi.entity.User;
+import com.openclassrooms.mddapi.repository.TopicRepository;
+import com.openclassrooms.mddapi.repository.UserRepository;
+import com.openclassrooms.mddapi.security.JwtService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +16,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -31,22 +36,62 @@ class TopicControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TopicRepository topicRepository;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @BeforeEach
+    void cleanUsers() {
+        userRepository.deleteAll();
+    }
+
     @Test
-    void getAllTopics_returnsReferenceTopicsSortedByNameWithoutAuthentication() throws Exception {
+    void getAllTopics_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/api/topics")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getAllTopics_returnsSortedTopicsWithSubscriptionState() throws Exception {
+        // Arrange : un utilisateur abonné au seul thème « Java »
+        Topic java = topicRepository.findAll().stream()
+                .filter(topic -> topic.getName().equals("Java"))
+                .findFirst()
+                .orElseThrow();
+        User bob = new User("bob", "bob@mail.fr", "hash");
+        bob.getSubscriptions().add(java);
+        String token = jwtService.generateToken(userRepository.save(bob));
+
         // Act + Assert
-        mockMvc.perform(get("/api/topics"))
+        mockMvc.perform(get("/api/topics").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(8)))
                 .andExpect(jsonPath("$[*].name", contains(
                         "Angular", "Bases de données", "DevOps", "Java",
                         "JavaScript", "Python", "Spring", "TypeScript")))
-                .andExpect(jsonPath("$[0].id", notNullValue()))
-                .andExpect(jsonPath("$[0].description", notNullValue()));
+                .andExpect(jsonPath("$[?(@.subscribed == true)].name", contains("Java")))
+                .andExpect(jsonPath("$[0].description").isNotEmpty());
+    }
+
+    @Test
+    void getAllTopics_withTokenOfDeletedUser_returns401() throws Exception {
+        // Arrange : token encore valide, mais le compte n'existe plus
+        User bob = userRepository.save(new User("bob", "bob@mail.fr", "hash"));
+        String token = jwtService.generateToken(bob);
+        userRepository.delete(bob);
+
+        // Act + Assert
+        mockMvc.perform(get("/api/topics").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void cors_allowsFrontOrigin() throws Exception {
-        // Act + Assert : requête de pré-vérification envoyée par le navigateur
+        // Act + Assert : requête de pré-vérification envoyée par le navigateur (sans token)
         mockMvc.perform(options("/api/topics")
                         .header(HttpHeaders.ORIGIN, FRONT_ORIGIN)
                         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET"))

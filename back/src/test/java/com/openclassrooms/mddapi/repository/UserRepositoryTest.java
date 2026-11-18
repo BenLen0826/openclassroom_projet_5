@@ -1,5 +1,6 @@
 package com.openclassrooms.mddapi.repository;
 
+import com.openclassrooms.mddapi.entity.Topic;
 import com.openclassrooms.mddapi.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TopicRepository topicRepository;
 
     @Test
     void save_fillsAuditDates() {
@@ -71,6 +75,23 @@ class UserRepositoryTest {
         // Act + Assert
         assertThat(userRepository.findByEmail("alice@mail.fr")).isEmpty();
         assertThat(userRepository.findByEmail("bob@mail.fr")).isPresent();
+    }
+
+    @Test
+    void findSubscribedTopicIds_returnsOnlyThatUsersTopics() {
+        // Arrange : deux utilisateurs, abonnements différents
+        Topic java = topicRepository.save(new Topic("Java-test", "Back-end"));
+        Topic angular = topicRepository.save(new Topic("Angular-test", "Front-end"));
+        User bob = new User("bob", "bob@mail.fr", "hash");
+        bob.getSubscriptions().add(java);
+        User alice = new User("alice", "alice@mail.fr", "hash");
+        alice.getSubscriptions().add(angular);
+        userRepository.saveAndFlush(bob);
+        userRepository.saveAndFlush(alice);
+
+        // Act + Assert
+        assertThat(userRepository.findSubscribedTopicIds(bob.getId())).containsExactly(java.getId());
+        assertThat(userRepository.findSubscribedTopicIds(alice.getId())).containsExactly(angular.getId());
     }
 
     @Test
