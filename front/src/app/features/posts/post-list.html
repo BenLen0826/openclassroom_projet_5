@@ -12,14 +12,7 @@
   <p role="alert">{{ error }}</p>
 } @else {
   @for (post of store.posts(); track post.id) {
-    <article>
-      <a [routerLink]="['/posts', post.id]">
-        <h2>{{ post.title }}</h2>
-      </a>
-      <p>{{ post.createdAt | date: 'dd/MM/yyyy' }} · {{ post.authorUsername }}</p>
-      <!-- Contenu complet : l'extrait sera obtenu en CSS à l'étape 6 -->
-      <p>{{ post.content }}</p>
-    </article>
+    <app-post-card [post]="post" />
   } @empty {
     <p>Aucun article pour l'instant. Abonnez-vous à des thèmes pour remplir votre fil.</p>
   }

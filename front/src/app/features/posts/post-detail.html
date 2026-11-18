@@ -10,6 +10,8 @@
     </p>
     <p>{{ post.content }}</p>
   </article>
+
+  <app-comment-section [postId]="post.id" />
 } @else {
   <p>Chargement…</p>
 }

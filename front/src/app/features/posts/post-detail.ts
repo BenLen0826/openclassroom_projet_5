@@ -4,17 +4,18 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Post } from '../../core/models/post';
 import { PostService } from '../../core/services/post.service';
+import { CommentSection } from './comment-section';
 
 const NOT_FOUND = 'Article introuvable.';
 const LOAD_ERROR = "Impossible de charger l'article. Réessayez plus tard.";
 
 /**
- * Page d'un article (sans mise en forme avant l'étape 6). Les commentaires arrivent
- * avec `feature/comments`. Les données ne servent qu'à cette page : pas de store.
+ * Page d'un article (sans mise en forme avant l'étape 6). Les commentaires sont gérés
+ * par `CommentSection`. Les données ne servent qu'à cette page : pas de store.
  */
 @Component({
   selector: 'app-post-detail',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, CommentSection],
   templateUrl: './post-detail.html',
 })
 export class PostDetail implements OnInit {
