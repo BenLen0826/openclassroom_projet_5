@@ -1,0 +1,38 @@
+<section>
+  <h2>Commentaires</h2>
+
+  @if (loadError(); as message) {
+    <p role="alert">{{ message }}</p>
+  } @else {
+    @for (comment of comments(); track comment.id) {
+      <app-comment-item [comment]="comment" />
+    } @empty {
+      <p>Aucun commentaire pour l'instant.</p>
+    }
+
+    <!-- Formulaire seulement si la liste est chargée : sinon un commentaire envoyé resterait invisible -->
+    <form [formGroup]="form" (ngSubmit)="send()" novalidate>
+      <label for="content">Écrivez ici votre commentaire</label>
+      <textarea
+        id="content"
+        name="content"
+        formControlName="content"
+        placeholder="Écrivez ici votre commentaire"
+      ></textarea>
+      @if (contentError(); as message) {
+        <p id="content-error">{{ message }}</p>
+      }
+      @if (generalError(); as message) {
+        <p role="alert">{{ message }}</p>
+      }
+      <!-- Texte provisoire : l'icône d'envoi de la maquette arrive à l'étape 6 -->
+      <button
+        type="submit"
+        aria-label="Envoyer le commentaire"
+        [disabled]="form.invalid || sending()"
+      >
+        Envoyer
+      </button>
+    </form>
+  }
+</section>

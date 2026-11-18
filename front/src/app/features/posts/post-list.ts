@@ -1,12 +1,12 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PostStore } from '../../core/stores/post.store';
+import { PostCard } from '../../shared/components/post-card';
 
 /** Page « Articles » : fil d'actualité avec tri par date (sans mise en forme avant l'étape 6). */
 @Component({
   selector: 'app-post-list',
-  imports: [DatePipe, RouterLink],
+  imports: [RouterLink, PostCard],
   templateUrl: './post-list.html',
 })
 export class PostList implements OnInit {

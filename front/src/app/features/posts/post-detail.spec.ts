@@ -3,9 +3,11 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { Post } from '../../core/models/post';
+import { CommentService } from '../../core/services/comment.service';
 import { PostService } from '../../core/services/post.service';
 import { PostDetail } from './post-detail';
 
+/** Page d'un article ; le détail des commentaires est testé dans `comment-section.spec.ts`. */
 describe('PostDetail', () => {
   const post: Post = {
     id: 42,
@@ -17,14 +19,17 @@ describe('PostDetail', () => {
     topicName: 'Java',
   };
   let getById: ReturnType<typeof vi.fn>;
+  let getForPost: ReturnType<typeof vi.fn>;
 
   async function renderWith(response: Observable<Post>): Promise<HTMLElement> {
     getById = vi.fn().mockReturnValue(response);
+    getForPost = vi.fn().mockReturnValue(of([]));
     TestBed.configureTestingModule({
       imports: [PostDetail],
       providers: [
         provideRouter([]),
         { provide: PostService, useValue: { getById } },
+        { provide: CommentService, useValue: { getForPost, create: vi.fn() } },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: convertToParamMap({ id: '42' }) } },
@@ -53,10 +58,19 @@ describe('PostDetail', () => {
     expect(page.querySelector('a[href="/posts"]')?.textContent?.trim()).toBe('Retour');
   });
 
-  it('shows a message when the post does not exist', async () => {
+  it('shows the comment section of this post', async () => {
+    const page = await renderWith(of(post));
+
+    expect(page.querySelector('app-comment-section')).not.toBeNull();
+    expect(getForPost).toHaveBeenCalledWith(42);
+  });
+
+  it('shows a message and no comment section when the post does not exist', async () => {
     const page = await renderWith(throwError(() => new HttpErrorResponse({ status: 404 })));
 
     expect(page.querySelector('[role="alert"]')?.textContent?.trim()).toBe('Article introuvable.');
     expect(page.querySelector('h1')).toBeNull();
+    expect(page.querySelector('app-comment-section')).toBeNull();
+    expect(getForPost).not.toHaveBeenCalled();
   });
 });
