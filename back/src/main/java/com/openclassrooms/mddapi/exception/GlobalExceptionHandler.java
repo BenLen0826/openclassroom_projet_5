@@ -77,6 +77,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(PostNotFoundException.class)
+    public ProblemDetail handlePostNotFound(PostNotFoundException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Ressource introuvable");
+        return problem;
+    }
+
     /** Abonnement simultané en double : l'abonnement existe, la demande est satisfaite. */
     @ExceptionHandler(DuplicateSubscriptionException.class)
     public ResponseEntity<Void> handleDuplicateSubscription(DuplicateSubscriptionException ex) {

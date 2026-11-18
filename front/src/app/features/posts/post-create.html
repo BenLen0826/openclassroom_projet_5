@@ -1,0 +1,39 @@
+<a routerLink="/posts">Retour</a>
+<h1>Créer un nouvel article</h1>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div>
+    <label for="topicId">Thème</label>
+    <select id="topicId" name="topicId" formControlName="topicId">
+      <option [ngValue]="null" disabled>Sélectionner un thème</option>
+      @for (topic of topicStore.topics(); track topic.id) {
+        <option [ngValue]="topic.id">{{ topic.name }}</option>
+      }
+    </select>
+    @if (errorFor('topicId'); as message) {
+      <p id="topicId-error">{{ message }}</p>
+    }
+  </div>
+
+  <div>
+    <label for="title">Titre</label>
+    <input id="title" name="title" type="text" formControlName="title" />
+    @if (errorFor('title'); as message) {
+      <p id="title-error">{{ message }}</p>
+    }
+  </div>
+
+  <div>
+    <label for="content">Contenu</label>
+    <textarea id="content" name="content" formControlName="content"></textarea>
+    @if (errorFor('content'); as message) {
+      <p id="content-error">{{ message }}</p>
+    }
+  </div>
+
+  @if (generalError(); as message) {
+    <p role="alert">{{ message }}</p>
+  }
+
+  <button type="submit" [disabled]="form.invalid || submitting()">Créer</button>
+</form>

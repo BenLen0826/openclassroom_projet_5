@@ -75,12 +75,12 @@ describe('Login', () => {
     expect(page.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
   });
 
-  it('navigates to /topics after a successful login', async () => {
+  it('navigates to /posts after a successful login', async () => {
     await submitWith(of({ token: 'jwt' }));
 
     expect(authService.login).toHaveBeenCalledWith({ identifier: 'bob', password: 'Secret1!' });
     expect(localStorage.getItem('mdd_token')).toBe('jwt');
-    expect(navigateByUrl).toHaveBeenCalledWith('/topics');
+    expect(navigateByUrl).toHaveBeenCalledWith('/posts');
   });
 
   it('shows the 401 message from the API', async () => {

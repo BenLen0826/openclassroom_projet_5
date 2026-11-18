@@ -65,7 +65,7 @@ export class Register {
     this.generalError.set(null);
 
     this.authStore.register(this.form.getRawValue()).subscribe({
-      next: () => void this.router.navigateByUrl('/topics'),
+      next: () => void this.router.navigateByUrl('/posts'),
       error: (error: unknown) => {
         this.submitting.set(false);
         this.showError(error);

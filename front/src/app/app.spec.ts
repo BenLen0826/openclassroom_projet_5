@@ -24,6 +24,7 @@ describe('App', () => {
   it('shows the navigation when authenticated', async () => {
     const page = await render('jwt');
 
+    expect(page.querySelector('nav a[href="/posts"]')?.textContent?.trim()).toBe('Articles');
     expect(page.querySelector('nav a[href="/topics"]')?.textContent?.trim()).toBe('Thèmes');
     expect(page.querySelector('nav a[href="/profile"]')?.textContent?.trim()).toBe('Profil');
     expect(page.querySelector('nav button')?.textContent?.trim()).toBe('Se déconnecter');
