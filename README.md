@@ -32,8 +32,18 @@ Une variable définie dans le système est prioritaire sur le fichier `.env`.
 | Commande | Rôle |
 |----------|------|
 | `./mvnw spring-boot:run` | Lance l'API sur `http://localhost:8080` |
+| `./mvnw spring-boot:run "-Dspring-boot.run.profiles=dev"` | Idem, avec les données de démonstration (voir ci-dessous). Les guillemets sont **obligatoires sous PowerShell** (`.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"`), qui couperait sinon l'argument au niveau du point |
 | `./mvnw test` | Lance les tests (base H2 en mémoire, profil `test`) et génère le rapport de couverture `target/site/jacoco/index.html` |
 | `./mvnw verify` | Idem, et échoue si la couverture des lignes est inférieure à 70 % |
+
+### Données de démonstration (profil `dev` uniquement)
+
+Lancée avec le profil `dev`, l'API ajoute au premier démarrage deux comptes, leurs abonnements, trois articles et deux commentaires (rien n'est ajouté si les comptes existent déjà). Ces comptes ont un mot de passe connu : **ne jamais utiliser le profil `dev` en conditions réelles**.
+
+| Nom d'utilisateur | E-mail | Mot de passe | Thèmes suivis |
+|-------------------|--------|--------------|---------------|
+| `alice` | `alice@example.com` | `Demo1234!` | Java, Angular |
+| `bob` | `bob@example.com` | `Demo1234!` | Java, Spring |
 
 ## Front
 
