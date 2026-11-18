@@ -1,1 +1,9 @@
+<!-- Navigation minimale TEMPORAIRE : remplacée par l'en-tête des maquettes à l'étape 6 -->
+@if (authStore.isAuthenticated()) {
+  <nav>
+    <a routerLink="/topics">Thèmes</a>
+    <button type="button" (click)="logout()">Se déconnecter</button>
+  </nav>
+}
+
 <router-outlet />
