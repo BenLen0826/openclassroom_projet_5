@@ -71,6 +71,14 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handlePostNotFound_returns404() {
+        ProblemDetail problem = handler.handlePostNotFound(new PostNotFoundException());
+
+        assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(problem.getDetail()).isEqualTo("Article introuvable.");
+    }
+
+    @Test
     void handleUnexpected_returnsGenericMessageWithoutInternalDetail() {
         // Act
         ProblemDetail problem = handler.handleUnexpected(new RuntimeException("boom"));
