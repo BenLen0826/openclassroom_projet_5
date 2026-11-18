@@ -1,34 +1,14 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthStore } from '../../core/stores/auth.store';
-import {
-  PASSWORD_RULE_MESSAGE,
-  passwordValidator,
-} from '../../shared/validators/password.validator';
+import { ACCOUNT_FIELD_MESSAGES, AccountField } from '../../shared/forms/account-field-messages';
+import { readServerErrors } from '../../shared/forms/server-errors';
+import { passwordValidator } from '../../shared/validators/password.validator';
 
-type Field = 'username' | 'email' | 'password';
-
-/** Messages affichés sous les champs, identiques à ceux du back (`RegisterRequest`). */
-const MESSAGES: Record<Field, Record<string, string>> = {
-  username: {
-    required: "Le nom d'utilisateur est obligatoire.",
-    maxlength: "Le nom d'utilisateur ne doit pas dépasser 50 caractères.",
-  },
-  email: {
-    required: "L'e-mail est obligatoire.",
-    email: "L'e-mail n'est pas valide.",
-    maxlength: "L'e-mail ne doit pas dépasser 255 caractères.",
-  },
-  password: {
-    required: 'Le mot de passe est obligatoire.',
-    password: PASSWORD_RULE_MESSAGE,
-  },
-};
-
-const GENERAL_ERROR = 'Une erreur est survenue. Réessayez plus tard.';
+type Field = AccountField;
+const MESSAGES = ACCOUNT_FIELD_MESSAGES;
 
 /** Page « Inscription » (sans mise en forme avant l'étape 6). */
 @Component({
@@ -104,17 +84,8 @@ export class Register {
   }
 
   private showError(error: unknown): void {
-    const body = error instanceof HttpErrorResponse ? error.error : null;
-    const status = error instanceof HttpErrorResponse ? error.status : 0;
-
-    if (status === 400 && body?.errors) {
-      this.serverErrors.set(body.errors);
-    } else if (status === 409 && body?.field) {
-      this.serverErrors.set({ [body.field as Field]: body.detail });
-    } else if (status === 409 && body?.detail) {
-      this.generalError.set(body.detail);
-    } else {
-      this.generalError.set(GENERAL_ERROR);
-    }
+    const { fields, general } = readServerErrors(error);
+    this.serverErrors.set(fields);
+    this.generalError.set(general);
   }
 }
