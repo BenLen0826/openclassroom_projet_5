@@ -24,7 +24,9 @@ describe('TopicService', () => {
 
   it('getAll calls GET /topics and returns the topics', () => {
     // Arrange
-    const topics: Topic[] = [{ id: 1, name: 'Angular', description: 'Front-end' }];
+    const topics: Topic[] = [
+      { id: 1, name: 'Angular', description: 'Front-end', subscribed: false },
+    ];
     let result: Topic[] | undefined;
 
     // Act

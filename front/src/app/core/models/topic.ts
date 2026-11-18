@@ -3,4 +3,6 @@ export interface Topic {
   id: number;
   name: string;
   description: string;
+  /** `true` si l'utilisateur connecté suit ce thème. */
+  subscribed: boolean;
 }

@@ -1,18 +1,26 @@
 <h1>Thèmes</h1>
 
-@if (store.loading()) {
+@if (store.actionError(); as actionError) {
+  <p role="alert">{{ actionError }}</p>
+}
+
+<!-- « Chargement… » seulement à la première visite : ensuite, la liste reste affichée pendant le rafraîchissement -->
+@if (store.loading() && store.topics().length === 0) {
   <p>Chargement…</p>
 } @else if (store.error(); as error) {
   <p role="alert">{{ error }}</p>
 } @else {
-  <ul>
-    @for (topic of store.topics(); track topic.id) {
-      <li>
-        <h2>{{ topic.name }}</h2>
-        <p>{{ topic.description }}</p>
-      </li>
-    } @empty {
-      <li>Aucun thème disponible.</li>
-    }
-  </ul>
+  @for (topic of store.topics(); track topic.id) {
+    <app-topic-card [topic]="topic">
+      <button
+        type="button"
+        [disabled]="topic.subscribed || store.isPending(topic.id)"
+        (click)="store.subscribe(topic.id)"
+      >
+        {{ topic.subscribed ? 'Déjà abonné' : "S'abonner" }}
+      </button>
+    </app-topic-card>
+  } @empty {
+    <p>Aucun thème disponible.</p>
+  }
 }

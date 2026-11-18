@@ -25,6 +25,7 @@ describe('App', () => {
     const page = await render('jwt');
 
     expect(page.querySelector('nav a[href="/topics"]')?.textContent?.trim()).toBe('Thèmes');
+    expect(page.querySelector('nav a[href="/profile"]')?.textContent?.trim()).toBe('Profil');
     expect(page.querySelector('nav button')?.textContent?.trim()).toBe('Se déconnecter');
   });
 
