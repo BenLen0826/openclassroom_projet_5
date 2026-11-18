@@ -33,6 +33,17 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleInvalidCredentials_returns401WithGenericMessage() {
+        // Act
+        ProblemDetail problem = handler.handleInvalidCredentials(new InvalidCredentialsException());
+
+        // Assert
+        assertThat(problem.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(problem.getTitle()).isEqualTo("Authentification refusée");
+        assertThat(problem.getDetail()).isEqualTo("Identifiant ou mot de passe incorrect.");
+    }
+
+    @Test
     void handleUnexpected_returnsGenericMessageWithoutInternalDetail() {
         // Act
         ProblemDetail problem = handler.handleUnexpected(new RuntimeException("boom"));

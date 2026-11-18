@@ -23,6 +23,7 @@ import java.time.Instant;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -109,5 +110,22 @@ class SecurityIntegrationTest {
     @Test
     void swaggerDocumentation_isPublic() throws Exception {
         mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
+    }
+
+    @Test
+    void swaggerDocumentation_declaresBearerScheme() throws Exception {
+        // Bouton « Authorize » de Swagger UI : permet d'essayer les routes protégées avec un token
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"));
+    }
+
+    @Test
+    void swaggerDocumentation_marksAuthRoutesAsPublic() throws Exception {
+        // Sans token dans Swagger : un token périmé saisi dans « Authorize » ferait refuser la connexion
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath("$.paths['/api/auth/login'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/auth/register'].post.security").isEmpty());
     }
 }
