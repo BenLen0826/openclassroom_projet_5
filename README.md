@@ -42,8 +42,8 @@ Lancée avec le profil `dev`, l'API ajoute au premier démarrage deux comptes, l
 
 | Nom d'utilisateur | E-mail | Mot de passe | Thèmes suivis |
 |-------------------|--------|--------------|---------------|
-| `alice` | `alice@example.com` | `Demo1234!` | Java, Angular |
-| `bob` | `bob@example.com` | `Demo1234!` | Java, Spring |
+| `user1` | `user1@example.com` | `Demo1234!` | Java, Angular |
+| `user2` | `user2@example.com` | `Demo1234!` | Java, Spring |
 
 ## Front
 
