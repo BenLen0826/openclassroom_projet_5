@@ -52,7 +52,7 @@ public class DevDataInitializer implements ApplicationRunner {
     /** Mot de passe des comptes de démonstration (respecte la règle des spécifications). */
     public static final String DEMO_PASSWORD = "Demo1234!";
 
-    private static final String ALICE_EMAIL = "alice@example.com";
+    private static final String USER1_EMAIL = "user1@example.com";
 
     private final UserRepository userRepository;
     private final TopicRepository topicRepository;
@@ -63,7 +63,7 @@ public class DevDataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByEmail(ALICE_EMAIL)) {
+        if (userRepository.existsByEmail(USER1_EMAIL)) {
             log.info("Données de démonstration (profil dev) : déjà présentes, rien n'est ajouté");
             return;
         }
@@ -71,27 +71,27 @@ public class DevDataInitializer implements ApplicationRunner {
                 .collect(Collectors.toMap(Topic::getName, Function.identity()));
 
         String hash = passwordEncoder.encode(DEMO_PASSWORD);
-        User alice = new User("alice", ALICE_EMAIL, hash);
-        alice.getSubscriptions().add(topics.get("Java"));
-        alice.getSubscriptions().add(topics.get("Angular"));
-        User bob = new User("bob", "bob@example.com", hash);
-        bob.getSubscriptions().add(topics.get("Java"));
-        bob.getSubscriptions().add(topics.get("Spring"));
-        userRepository.save(alice);
-        userRepository.save(bob);
+        User user1 = new User("user1", USER1_EMAIL, hash);
+        user1.getSubscriptions().add(topics.get("Java"));
+        user1.getSubscriptions().add(topics.get("Angular"));
+        User user2 = new User("user2", "user2@example.com", hash);
+        user2.getSubscriptions().add(topics.get("Java"));
+        user2.getSubscriptions().add(topics.get("Spring"));
+        userRepository.save(user1);
+        userRepository.save(user2);
 
         Post records = postRepository.save(new Post("Les records en Java",
                 "Depuis Java 16, les records simplifient les objets immuables : constructeur, "
-                        + "accesseurs, equals, hashCode et toString sont générés.", alice, topics.get("Java")));
+                        + "accesseurs, equals, hashCode et toString sont générés.", user1, topics.get("Java")));
         postRepository.save(new Post("Les signals dans Angular",
                 "Les signals gardent un état réactif et ne mettent à jour que ce qui en dépend, "
-                        + "sans zone.js.", alice, topics.get("Angular")));
+                        + "sans zone.js.", user1, topics.get("Angular")));
         Post security = postRepository.save(new Post("Sécuriser une API avec Spring Security",
                 "Un JWT vérifié par OAuth2 Resource Server suffit pour une API sans session.",
-                bob, topics.get("Spring")));
+                user2, topics.get("Spring")));
 
-        commentRepository.save(new Comment("Très clair, merci pour l'exemple !", bob, records));
-        commentRepository.save(new Comment("Et pour les tests, tu utilises MockMvc ?", alice, security));
+        commentRepository.save(new Comment("Très clair, merci pour l'exemple !", user2, records));
+        commentRepository.save(new Comment("Et pour les tests, tu utilises MockMvc ?", user1, security));
 
         // Jamais d'e-mail ni de mot de passe dans les logs
         log.info("Données de démonstration (profil dev) : 2 comptes, 3 articles, 2 commentaires ajoutés");

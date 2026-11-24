@@ -41,25 +41,25 @@ class DevDataInitializerTest {
 
     @Test
     void createsDemoAccountsWithTheDocumentedPassword() {
-        User alice = userRepository.findByEmail("alice@example.com").orElseThrow();
-        User bob = userRepository.findByEmail("bob@example.com").orElseThrow();
+        User user1 = userRepository.findByEmail("user1@example.com").orElseThrow();
+        User user2 = userRepository.findByEmail("user2@example.com").orElseThrow();
 
-        assertThat(alice.getUsername()).isEqualTo("alice");
-        assertThat(bob.getUsername()).isEqualTo("bob");
-        assertThat(passwordEncoder.matches(DevDataInitializer.DEMO_PASSWORD, alice.getPassword())).isTrue();
+        assertThat(user1.getUsername()).isEqualTo("user1");
+        assertThat(user2.getUsername()).isEqualTo("user2");
+        assertThat(passwordEncoder.matches(DevDataInitializer.DEMO_PASSWORD, user1.getPassword())).isTrue();
         assertThat(DevDataInitializer.DEMO_PASSWORD).isEqualTo("Demo1234!");
     }
 
     @Test
     @Transactional
     void createsSubscriptionsPostsAndComments() {
-        User alice = userRepository.findByEmail("alice@example.com").orElseThrow();
+        User user1 = userRepository.findByEmail("user1@example.com").orElseThrow();
 
-        assertThat(userRepository.findSubscribedTopicIds(alice.getId())).hasSize(2);
+        assertThat(userRepository.findSubscribedTopicIds(user1.getId())).hasSize(2);
         assertThat(postRepository.count()).isEqualTo(3);
         assertThat(commentRepository.count()).isEqualTo(2);
-        // Le fil d'alice n'est pas vide : ses abonnements correspondent à des articles
-        assertThat(postRepository.findFeed(alice.getId())).isNotEmpty();
+        // Le fil de user1 n'est pas vide : ses abonnements correspondent à des articles
+        assertThat(postRepository.findFeed(user1.getId())).isNotEmpty();
     }
 
     @Test
