@@ -1,0 +1,41 @@
+@use 'breakpoints' as *;
+
+// Conteneur d'une page : largeur limitée et centrée.
+.page {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-md);
+
+  @include desktop {
+    padding: var(--space-xl);
+  }
+}
+
+// Formulaire centré (inscription, connexion, création d'un article, profil).
+.form-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: var(--form-max-width);
+  margin: 0 auto;
+}
+
+// Grille de cartes : une colonne en mobile, deux en desktop.
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+
+  @include desktop {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.separator {
+  width: 100%;
+  margin: var(--space-lg) 0;
+  border: 0;
+  border-top: var(--border-width) solid var(--color-border);
+}

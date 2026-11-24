@@ -1,0 +1,49 @@
+// Boutons : violet plein (envoi), à bordure (accueil), gris désactivé (« Déjà abonné »),
+// et bouton transparent qui ne contient qu'une icône.
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--button-height);
+  padding: 0 var(--space-lg);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+
+  &:disabled {
+    color: var(--color-on-primary);
+    background: var(--color-disabled);
+    border-color: var(--color-disabled);
+    cursor: default;
+  }
+}
+
+.btn--outline {
+  color: var(--color-text);
+  background: var(--color-background);
+  border-color: var(--color-text);
+
+  &:hover:not(:disabled) {
+    color: var(--color-on-primary);
+  }
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}

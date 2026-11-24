@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { BackLink } from '../../shared/components/back-link';
 import { PostService } from '../../core/services/post.service';
 import { TopicStore } from '../../core/stores/topic.store';
 import { readServerErrors } from '../../shared/forms/server-errors';
@@ -29,7 +30,7 @@ const MESSAGES: Record<Field, Record<string, string>> = {
  */
 @Component({
   selector: 'app-post-create',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, BackLink],
   templateUrl: './post-create.html',
 })
 export class PostCreate implements OnInit {

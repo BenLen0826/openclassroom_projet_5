@@ -1,0 +1,78 @@
+@switch (kind()) {
+  @case ('full') {
+    <header class="header">
+      <a class="header__logo" routerLink="/posts">
+        <img src="/assets/logo_p6.png" alt="Logo MDD" />
+      </a>
+
+      <!-- Desktop -->
+      <nav class="header__nav" aria-label="Navigation principale">
+        <ng-container *ngTemplateOutlet="links" />
+      </nav>
+
+      <!-- Mobile -->
+      <button
+        type="button"
+        class="icon-btn header__burger"
+        aria-label="Ouvrir le menu"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="openMenu()"
+      >
+        <span class="material-icons-outlined" aria-hidden="true">menu</span>
+      </button>
+    </header>
+
+    <!-- Le clic sur le fond est un raccourci souris : au clavier, la touche Échap ferme déjà le
+         <dialog> (comportement natif), d'où les deux règles désactivées sur cette seule ligne -->
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+    <dialog
+      #menu
+      class="header__menu"
+      (close)="menuOpen.set(false)"
+      (click)="closeOnBackdrop($event)"
+    >
+      <!-- autofocus : à l'ouverture, le focus va au panneau et non au premier bouton,
+           « Se déconnecter », qu'un double appui sur Entrée déclencherait -->
+      <nav class="header__menu-panel" aria-label="Navigation principale" tabindex="-1" autofocus>
+        <ng-container *ngTemplateOutlet="links" />
+      </nav>
+    </dialog>
+  }
+  @case ('logo-only') {
+    <!-- Connexion et inscription : logo seul, masqué en mobile (la page affiche un grand logo) -->
+    <header class="header header--logo-only">
+      <img class="header__logo" src="/assets/logo_p6.png" alt="Logo MDD" />
+    </header>
+  }
+}
+
+<!-- Mêmes liens en desktop et dans le menu mobile -->
+<ng-template #links>
+  <button type="button" class="header__logout" (click)="logout()">Se déconnecter</button>
+  <a
+    class="header__link"
+    routerLink="/posts"
+    routerLinkActive="is-active"
+    ariaCurrentWhenActive="page"
+    (click)="closeMenu()"
+    >Articles</a
+  >
+  <a
+    class="header__link"
+    routerLink="/topics"
+    routerLinkActive="is-active"
+    ariaCurrentWhenActive="page"
+    (click)="closeMenu()"
+    >Thèmes</a
+  >
+  <a
+    class="header__link header__profile"
+    routerLink="/profile"
+    routerLinkActive="is-active"
+    ariaCurrentWhenActive="page"
+    aria-label="Profil"
+    (click)="closeMenu()"
+  >
+    <span class="material-icons-outlined" aria-hidden="true">account_circle</span>
+  </a>
+</ng-template>

@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { BackLink } from '../../shared/components/back-link';
 import { Post } from '../../core/models/post';
 import { PostService } from '../../core/services/post.service';
 import { CommentSection } from './comment-section';
@@ -15,7 +16,7 @@ const LOAD_ERROR = "Impossible de charger l'article. Réessayez plus tard.";
  */
 @Component({
   selector: 'app-post-detail',
-  imports: [DatePipe, RouterLink, CommentSection],
+  imports: [DatePipe, BackLink, CommentSection],
   templateUrl: './post-detail.html',
 })
 export class PostDetail implements OnInit {
