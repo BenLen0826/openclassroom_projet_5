@@ -55,7 +55,7 @@ describe('PostDetail', () => {
   it('links back to the feed', async () => {
     const page = await renderWith(of(post));
 
-    expect(page.querySelector('a[href="/posts"]')?.textContent?.trim()).toBe('Retour');
+    expect(page.querySelector('a[aria-label="Retour"]')?.getAttribute('href')).toBe('/posts');
   });
 
   it('shows the comment section of this post', async () => {

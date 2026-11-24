@@ -1,0 +1,100 @@
+@use 'breakpoints' as *;
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 var(--space-md);
+  border-bottom: var(--border-width) solid var(--color-border);
+
+  @include desktop {
+    padding: 0 var(--space-xl);
+  }
+}
+
+.header__logo img,
+img.header__logo {
+  height: calc(var(--header-height) - var(--space-md));
+}
+
+// Connexion et inscription : logo seul en desktop ; en mobile, pas d'en-tête (maquette)
+.header--logo-only {
+  display: none;
+
+  @include desktop {
+    display: flex;
+  }
+}
+
+// Liens à droite en desktop, masqués en mobile (remplacés par le burger)
+.header__nav {
+  display: none;
+
+  @include desktop {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+}
+
+.header__burger {
+  @include desktop {
+    display: none;
+  }
+}
+
+.header__logout {
+  padding: 0;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-danger);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.header__link {
+  font-size: var(--font-size-button);
+
+  &.is-active {
+    color: var(--color-primary);
+  }
+}
+
+.header__profile {
+  display: inline-flex;
+  color: var(--color-text-muted);
+
+  &.is-active {
+    color: var(--color-primary);
+  }
+}
+
+// Menu mobile : panneau collé à droite, pleine hauteur, profil en bas
+.header__menu {
+  width: 70%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-left: var(--border-width) solid var(--color-border);
+
+  &::backdrop {
+    background: var(--color-backdrop);
+  }
+}
+
+.header__menu-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  height: 100%;
+  padding: var(--space-lg) var(--space-md);
+
+  .header__profile {
+    margin-top: auto;
+  }
+}

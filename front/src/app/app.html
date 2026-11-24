@@ -1,11 +1,5 @@
-<!-- Navigation minimale TEMPORAIRE : remplacée par l'en-tête des maquettes à l'étape 6 -->
-@if (authStore.isAuthenticated()) {
-  <nav>
-    <a routerLink="/posts">Articles</a>
-    <a routerLink="/topics">Thèmes</a>
-    <a routerLink="/profile">Profil</a>
-    <button type="button" (click)="logout()">Se déconnecter</button>
-  </nav>
-}
+<app-header />
 
-<router-outlet />
+<main>
+  <router-outlet />
+</main>

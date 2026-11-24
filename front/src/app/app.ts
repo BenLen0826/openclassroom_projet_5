@@ -1,20 +1,12 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { AuthStore } from './core/stores/auth.store';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { Header } from './core/layout/header';
 
+/** Coquille de l'application : l'en-tête (qui choisit seul sa forme), puis la page courante. */
 @Component({
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, Header],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
-export class App {
-  protected readonly authStore = inject(AuthStore);
-  private readonly router = inject(Router);
-
-  /** Déconnexion, puis retour à l'accueil. */
-  protected logout(): void {
-    this.authStore.logout();
-    void this.router.navigateByUrl('/');
-  }
-}
+export class App {}
