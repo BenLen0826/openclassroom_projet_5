@@ -47,7 +47,7 @@ Lancée avec le profil `dev`, l'API ajoute au premier démarrage deux comptes, l
 
 ## Front
 
-Application Angular 22 (Angular CLI 22.2.6, Angular Material), dans le dossier `front/`.
+Application Angular 22 (Angular CLI 22.2.6, styles en SCSS), dans le dossier `front/`.
 
 Installer les dépendances avant le premier lancement : `npm install`.
 

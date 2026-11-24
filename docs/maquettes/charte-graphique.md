@@ -1,0 +1,95 @@
+# Charte graphique MDD (relevé des maquettes)
+
+Relevé des valeurs des maquettes de Juana, qui servira à créer les **variables CSS** du front (`front/src/styles/_tokens.scss`, étape 6).
+
+- **Sources** : export PDF [`maquettes-mdd.pdf`](maquettes-mdd.pdf) (couleurs exactes, extraites du fichier) et [maquette Figma](https://www.figma.com/design/Rflr3TVBog35BNMnn0DF09/Maquettes-MDD--desktop-et-mobile-?node-id=0-1) (tailles, espacements, police).
+- **Objectif** : un respect global des écrans, pas un rendu au pixel près.
+- **Règle** : une fois les variables créées dans `_tokens.scss`, **c'est ce fichier qui fait foi**. Ce document reste le relevé et l'explication des valeurs.
+
+Légende de la colonne « Source » :
+
+- **PDF** : valeur exacte extraite de l'export PDF par un script ;
+- **Figma** : valeur relevée par l'utilisateur dans Figma ;
+- **Validée** : valeur proposée par l'IA (absente de la maquette ou non lisible dans le PDF), vérifiée et validée par l'utilisateur.
+
+---
+
+## 1. Couleurs
+
+Les couleurs de l'export PDF sont exactes (lues dans le fichier, pas estimées à l'œil).
+
+| Jeton (variable CSS) | Usage | Valeur | Source |
+|----------------------|-------|--------|--------|
+| `--color-primary` | Boutons, logo, lien actif de l'en-tête, bordures des champs, icône d'envoi | `#7763C5` | PDF |
+| `--color-primary-hover` | Bouton survolé (absent de la maquette) | `#6652B3` (violet assombri de 10 %) | Validée |
+| `--color-primary-alt` | Second violet, présent 3 fois (à confirmer à l'intégration : icône de profil active ou icône d'envoi) | `#6C5CCF` | PDF |
+| `--color-on-primary` | Texte des boutons violets | `#FFFFFF` | PDF |
+| `--color-danger` | Lien « Se déconnecter », messages d'erreur | `#A40F0F` | PDF |
+| `--color-text` | Texte principal | `#000000` | PDF |
+| `--color-text-muted` | Placeholders, texte secondaire | `#939393` | PDF + Figma |
+| `--color-background` | Fond des pages | `#FFFFFF` | PDF |
+| `--color-surface` | Fond des cartes d'article et de thème | `#F5F5F5` | PDF |
+| `--color-surface-alt` | Bulle d'un commentaire | `#EEEEEE` | PDF |
+| `--color-disabled` | Bouton « Déjà abonné » | `#939393` | PDF |
+| `--color-border` | Séparateurs (sous l'en-tête, avant les commentaires et les abonnements) | `#D9D9D9` | PDF |
+| `--color-backdrop` | Fond assombri derrière le menu mobile (absent de la maquette) | `rgb(0 0 0 / 40%)` | Validée |
+
+Couleurs relevées mais non attribuées : `#EFEFEF` (une fois) et `#8A8C8C` (deux fois).
+
+**Contrastes** : l'accessibilité avancée n'est pas demandée pour ce MVP (décision du 24/11/2026). Les couleurs de la maquette sont gardées telles quelles, y compris le gris `#939393` (texte blanc du bouton « Déjà abonné », placeholders), dont le contraste (environ 3:1) est sous le seuil recommandé de 4,5:1. Point à signaler dans la revue technique si Lighthouse le relève.
+
+## 2. Typographie
+
+| Jeton | Usage | Valeur | Source |
+|-------|-------|--------|--------|
+| `--font-family` | Toute l'application | Inter, puis `system-ui, sans-serif` | Figma |
+| `--font-size-page-title` | Titres de page (« Inscription », « Profil utilisateur », « Créer un nouvel article ») | 24 px | Validée |
+| `--font-size-card-title` | Titre d'une carte d'article ou de thème | 16 px | Validée |
+| `--font-size-card-body` | Texte courant des cartes | 14 px | Figma |
+| `--font-size-body` | Texte courant, contenu d'un article | 20 px | Figma |
+| `--font-size-small` | Date, auteur, labels des champs, extraits | 14 px | Validée |
+| `--font-size-button` | Texte des boutons | 16 px | Figma |
+| `--font-weight-regular` | Texte courant | 400 | Validée |
+| `--font-weight-bold` | Titres, boutons | 600 | Validée |
+| `--line-height-body` | Texte courant | 1.5 | Validée |
+
+## 3. Espacements
+
+| Jeton | Usage | Valeur | Source |
+|-------|-------|--------|--------|
+| `--space-xs` | Entre un label et son champ | 4 px | Validée |
+| `--space-sm` | Entre deux champs, dans une carte | 8 px | Validée |
+| `--space-md` | Marge intérieure des cartes, entre deux cartes | 16 px | Validée |
+| `--space-lg` | Entre deux sections (formulaire du profil / abonnements) | 24 px | Validée |
+| `--space-xl` | Marges de page (desktop) | 32 px | Validée |
+
+## 4. Formes et dimensions
+
+| Jeton | Usage | Valeur | Source |
+|-------|-------|--------|--------|
+| `--radius-sm` | Boutons, champs de saisie | 6 px | Validée |
+| `--radius-md` | Cartes, bulle de commentaire, zone de commentaire | 10 px | Validée |
+| `--border-width` | Bordure des champs | 1 px | Validée |
+| `--input-height` | Hauteur d'un champ sur une ligne | 40 px | Validée |
+| `--button-height` | Hauteur d'un bouton | 36 px | Validée |
+| `--form-max-width` | Largeur des formulaires (inscription, connexion, création, profil) | 360 px | Validée |
+| `--content-max-width` | Largeur maximale du contenu (fil, thèmes, article) | 1100 px | Validée |
+| `--header-height` | Hauteur de l'en-tête | 64 px | Validée |
+| `--avatar-size` | Icône de profil de l'en-tête | 36 px | Validée |
+
+## 5. Mise en page responsive
+
+| Élément | Valeur | Source |
+|---------|--------|--------|
+| Largeur du cadre desktop | 837 px | Figma |
+| Largeur du cadre mobile | 294 px | Figma |
+| Point de rupture mobile / desktop | 768 px : en dessous, une colonne et menu burger | Validée |
+| Colonnes des cartes (desktop / mobile) | 2 / 1 | PDF |
+
+## 6. Éléments graphiques
+
+| Élément | Source | Remarque |
+|---------|--------|----------|
+| Logo MDD | `front/public/assets/logo_p6.png` (repris du projet initial) | Taille ajustée à l'intégration, proportionnelle à la maquette |
+| Flèche retour, menu burger, icône d'envoi, icône de profil | Figma (export SVG : sélectionner l'icône → *Export* → SVG) | À défaut, icônes SVG simples dessinées dans le même style |
+| Ombres | Maquette | Aucune ombre visible : pas d'ombre |
