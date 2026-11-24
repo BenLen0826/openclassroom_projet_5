@@ -1,0 +1,10 @@
+// Point de rupture de la charte : en dessous, version mobile (une colonne, menu burger).
+// Variable SCSS et non CSS : une variable CSS ne peut pas servir dans une @media.
+$breakpoint-desktop: 768px;
+
+// Styles écrits « mobile d'abord » : la version ordinateur va dans @include desktop.
+@mixin desktop {
+  @media (min-width: $breakpoint-desktop) {
+    @content;
+  }
+}

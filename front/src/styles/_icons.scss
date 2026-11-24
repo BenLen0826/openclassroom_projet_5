@@ -1,0 +1,18 @@
+// Icônes Material (police Material Icons Outlined, hébergée par @fontsource) :
+// <span class="material-icons-outlined" aria-hidden="true">menu</span>.
+// Le paquet ne fournit que la police : cette classe active ses ligatures (le mot devient l'icône).
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--avatar-size);
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
