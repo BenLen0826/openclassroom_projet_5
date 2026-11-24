@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,15 @@ import java.util.stream.Collectors;
  * personne ne pourrait s'abonner ni publier. L'insertion est idempotente :
  * seuls les thèmes absents (repérés par leur nom) sont ajoutés, on peut donc
  * redémarrer l'API autant de fois que nécessaire sans créer de doublon.
+ * <p>
+ * Données de <strong>référence</strong>, actives dans tous les environnements (conditions
+ * réelles, développement, tests). Les données de <strong>démonstration</strong> (comptes,
+ * articles, commentaires) sont à part, dans {@link DevDataInitializer}, actif seulement
+ * avec le profil {@code dev}.
  */
 @Slf4j
 @Component
+@Order(1) // avant DevDataInitializer (profil dev), qui utilise ces thèmes
 @RequiredArgsConstructor
 public class TopicDataInitializer implements ApplicationRunner {
 
