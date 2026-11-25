@@ -1,0 +1,25 @@
+@use 'breakpoints' as *;
+
+// « Créer un article » et « Trier par » : l'un sous l'autre et centrés en mobile,
+// sur la même ligne en desktop (création à gauche, tri à droite), comme la maquette.
+.feed__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+
+  @include desktop {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.feed__sort {
+  padding: 0;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-bold);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}

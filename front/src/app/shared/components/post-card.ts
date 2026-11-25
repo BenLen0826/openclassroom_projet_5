@@ -8,6 +8,7 @@ import { Post } from '../../core/models/post';
   selector: 'app-post-card',
   imports: [DatePipe, RouterLink],
   templateUrl: './post-card.html',
+  styleUrl: './post-card.scss',
 })
 export class PostCard {
   readonly post = input.required<Post>();
