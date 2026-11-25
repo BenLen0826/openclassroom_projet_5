@@ -35,6 +35,7 @@ Une variable définie dans le système est prioritaire sur le fichier `.env`.
 | `./mvnw spring-boot:run "-Dspring-boot.run.profiles=dev"` | Idem, avec les données de démonstration (voir ci-dessous). Les guillemets sont **obligatoires sous PowerShell** (`.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"`), qui couperait sinon l'argument au niveau du point |
 | `./mvnw test` | Lance les tests (base H2 en mémoire, profil `test`) et génère le rapport de couverture `target/site/jacoco/index.html` |
 | `./mvnw verify` | Idem, et échoue si la couverture des lignes est inférieure à 70 % |
+| `./mvnw spring-boot:test-run` | Lance l'API pour les tests end-to-end (profil `e2e` toujours actif), sur une base H2 en mémoire vide à chaque démarrage (voir [Tests end-to-end](#tests-end-to-end-cypress)) |
 
 ### Données de démonstration (profil `dev` uniquement)
 
@@ -64,5 +65,30 @@ L'URL de l'API est définie dans `src/environments/environment.development.ts` (
 | `npx ng test --watch=false --coverage` | Lance les tests une fois et génère le rapport de couverture `coverage/` |
 | `npm run lint` | Analyse le code avec ESLint (TypeScript, Angular, accessibilité des templates) |
 | `npm run build` | Compile l'application dans `dist/` |
-| `npm run cypress:run` | Lance les tests end-to-end Cypress dans Chrome, sans interface (l'application doit tourner : `npm start` dans un autre terminal) |
+| `npm run cypress:run` | Lance les tests end-to-end Cypress dans Chrome, sans interface (voir ci-dessous) |
 | `npm run cypress:open` | Ouvre l'interface de Cypress pour lancer et suivre les tests pas à pas |
+
+### Tests end-to-end (Cypress)
+
+Les tests end-to-end pilotent un vrai navigateur (Chrome) sur l'application complète : front → API → base de données. Ils sont dans `front/cypress/e2e/` :
+
+| Fichier | Ce qu'il vérifie |
+|---------|------------------|
+| `home.cy.ts` | La page d'accueil s'affiche et mène à l'inscription (n'a besoin que du front) |
+| `auth.cy.ts` | Inscription, connexion par e-mail et par nom d'utilisateur, mauvais mot de passe, session gardée après rechargement, déconnexion |
+| `topics.cy.ts` | Abonnement à un thème |
+| `posts.cy.ts` | Création d'un article, fil d'actualité, tri du fil |
+| `comments.cy.ts` | Commentaire sur un article |
+| `profile.cy.ts` | Modification du profil, désabonnement |
+
+Chaque test est indépendant : il crée son propre compte. Les commandes de `cypress/support/commands.ts` (`cy.connecterUtilisateur()`, `cy.abonnerA()`, `cy.creerArticle()`…) préparent ces données en appelant directement l'API, sans repasser par les formulaires.
+
+Les tests créent de vrais comptes et articles. Ils utilisent donc une **API de test**, sur une base H2 en mémoire vide à chaque démarrage (seuls les thèmes sont insérés) : la base MySQL n'est jamais touchée. Chaque lancement crée des données uniques : on peut relancer les tests sans redémarrer l'API.
+
+1. **Arrêter l'API normale** si elle tourne (le port 8080 doit être libre).
+2. Lancer l'API de test, depuis `back/` : `./mvnw spring-boot:test-run` (sous PowerShell : `.\mvnw.cmd spring-boot:test-run`). Le profil `e2e` est activé automatiquement.
+3. **Vérifier dans le log de l'API de test** la ligne `Database JDBC URL [jdbc:h2:mem:mdd-e2e]` (et « Thèmes de référence : 8 ajouté(s) »). Si l'API s'arrête avec « Port 8080 was already in use », l'API normale tourne encore : l'arrêter, sinon les tests écriraient dans la base MySQL.
+4. Lancer le front, depuis `front/` : `npm start`.
+5. Lancer les tests, depuis `front/` : `npm run cypress:run` (ou `npm run cypress:open` pour les suivre pas à pas).
+
+⚠️ Utiliser `spring-boot:test-run` et non `spring-boot:run` : ce dernier ne voit pas la configuration de test et se connecterait à la base MySQL.
