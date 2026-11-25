@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { AuthResponse } from '../../core/models/auth';
 import { AuthService } from '../../core/services/auth.service';
 import { Login } from './login';
@@ -44,14 +44,44 @@ describe('Login', () => {
 
   const alertText = () => page.querySelector('[role="alert"]')?.textContent?.trim();
 
-  it('disables the submit button while the form is invalid', async () => {
-    const button = page.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-    expect(button.disabled).toBe(true);
+  const submitButton = () => page.querySelector<HTMLButtonElement>('button[type="submit"]')!;
 
+  async function send(): Promise<void> {
+    submitButton().click();
+    await fixture.whenStable();
+  }
+
+  it('shows every message and calls nothing when an empty form is sent', async () => {
+    // Act
+    await send();
+
+    // Assert
+    expect(submitButton().disabled).toBe(false);
+    expect(page.querySelector('#identifier-error')?.textContent?.trim()).toBe(
+      "L'identifiant est obligatoire.",
+    );
+    expect(page.querySelector('#password-error')?.textContent?.trim()).toBe(
+      'Le mot de passe est obligatoire.',
+    );
+    expect(authService.login).not.toHaveBeenCalled();
+  });
+
+  it('sends only once on a double submission', async () => {
+    // Arrange : la première requête ne répond pas encore
+    authService.login.mockReturnValue(new Subject<AuthResponse>());
     await type('identifier', 'bob');
     await type('password', 'Secret1!');
 
-    expect(button.disabled).toBe(false);
+    // Act
+    await send();
+    await send();
+
+    // Assert
+    expect(authService.login).toHaveBeenCalledTimes(1);
+  });
+
+  it('links back to the home page', () => {
+    expect(page.querySelector('a[aria-label="Retour"]')?.getAttribute('href')).toBe('/');
   });
 
   it('shows the required message under a touched empty field', async () => {
@@ -72,7 +102,8 @@ describe('Login', () => {
     expect(page.querySelector('#password-error')?.textContent?.trim()).toBe(
       'Le mot de passe est obligatoire.',
     );
-    expect(page.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
+    await send();
+    expect(authService.login).not.toHaveBeenCalled();
   });
 
   it('navigates to /posts after a successful login', async () => {

@@ -20,6 +20,33 @@
   width: 100%;
   max-width: var(--form-max-width);
   margin: 0 auto;
+
+  // Bouton d'envoi centré sous les champs (toutes les maquettes)
+  > .btn {
+    align-self: center;
+  }
+}
+
+// Pages de compte (inscription, connexion) : flèche retour à gauche, logo (mobile) et titre centrés.
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+
+  > app-back-link {
+    align-self: flex-start;
+  }
+}
+
+// Grand logo au-dessus du titre en mobile ; en desktop, l'en-tête l'affiche déjà.
+.auth-page__logo {
+  width: 60%;
+  max-width: var(--form-max-width);
+
+  @include desktop {
+    display: none;
+  }
 }
 
 // Grille de cartes : une colonne en mobile, deux en desktop.

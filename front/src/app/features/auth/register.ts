@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthStore } from '../../core/stores/auth.store';
+import { BackLink } from '../../shared/components/back-link';
 import { ACCOUNT_FIELD_MESSAGES, AccountField } from '../../shared/forms/account-field-messages';
 import { readServerErrors } from '../../shared/forms/server-errors';
 import { passwordValidator } from '../../shared/validators/password.validator';
@@ -10,10 +11,10 @@ import { passwordValidator } from '../../shared/validators/password.validator';
 type Field = AccountField;
 const MESSAGES = ACCOUNT_FIELD_MESSAGES;
 
-/** Page « Inscription » (sans mise en forme avant l'étape 6). */
+/** Page « Inscription ». */
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, BackLink],
   templateUrl: './register.html',
 })
 export class Register {
@@ -52,12 +53,18 @@ export class Register {
     if (!control.touched || !control.errors) {
       return null;
     }
+    // Mot de passe : « obligatoire » s'il est vide, la règle seulement s'il ne la respecte pas
     return MESSAGES[field][Object.keys(control.errors)[0]] ?? null;
   }
 
   protected submit(): void {
-    if (this.form.invalid || this.submitting()) {
+    // Bouton toujours actif : un formulaire invalide affiche tous ses messages
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Double clic pendant l'envoi : une seule requête
+    if (this.submitting()) {
       return;
     }
     this.submitting.set(true);
