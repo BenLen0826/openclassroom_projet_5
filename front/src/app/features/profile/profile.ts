@@ -5,6 +5,7 @@ import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { TopicStore } from '../../core/stores/topic.store';
 import { ACCOUNT_FIELD_MESSAGES, AccountField } from '../../shared/forms/account-field-messages';
+import { fieldError } from '../../shared/forms/field-error';
 import { readServerErrors } from '../../shared/forms/server-errors';
 import { TopicCard } from '../../shared/components/topic-card';
 import { passwordValidator } from '../../shared/validators/password.validator';
@@ -63,15 +64,11 @@ export class Profile implements OnInit {
 
   /** Message sous un champ : celui du serveur, sinon celui de la validation locale. */
   protected errorFor(field: AccountField): string | null {
-    const serverError = this.serverErrors()[field];
-    if (serverError) {
-      return serverError;
-    }
-    const control = this.form.controls[field];
-    if (!control.touched || !control.errors) {
-      return null;
-    }
-    return ACCOUNT_FIELD_MESSAGES[field][Object.keys(control.errors)[0]] ?? null;
+    return fieldError(
+      this.form.controls[field],
+      this.serverErrors()[field],
+      ACCOUNT_FIELD_MESSAGES[field],
+    );
   }
 
   protected submit(): void {

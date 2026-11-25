@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { BackLink } from '../../shared/components/back-link';
 import { PostService } from '../../core/services/post.service';
 import { TopicStore } from '../../core/stores/topic.store';
+import { fieldError } from '../../shared/forms/field-error';
 import { readServerErrors } from '../../shared/forms/server-errors';
 
 type Field = 'topicId' | 'title' | 'content';
@@ -64,15 +65,7 @@ export class PostCreate implements OnInit {
   }
 
   protected errorFor(field: Field): string | null {
-    const serverError = this.serverErrors()[field];
-    if (serverError) {
-      return serverError;
-    }
-    const control = this.form.controls[field];
-    if (!control.touched || !control.errors) {
-      return null;
-    }
-    return MESSAGES[field][Object.keys(control.errors)[0]] ?? null;
+    return fieldError(this.form.controls[field], this.serverErrors()[field], MESSAGES[field]);
   }
 
   protected submit(): void {

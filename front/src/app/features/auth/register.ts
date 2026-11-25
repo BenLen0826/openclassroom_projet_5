@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthStore } from '../../core/stores/auth.store';
 import { BackLink } from '../../shared/components/back-link';
 import { ACCOUNT_FIELD_MESSAGES, AccountField } from '../../shared/forms/account-field-messages';
+import { fieldError } from '../../shared/forms/field-error';
 import { readServerErrors } from '../../shared/forms/server-errors';
 import { passwordValidator } from '../../shared/validators/password.validator';
 
@@ -45,16 +46,8 @@ export class Register {
 
   /** Message à afficher sous un champ : celui du serveur, sinon celui de la validation locale. */
   protected errorFor(field: Field): string | null {
-    const serverError = this.serverErrors()[field];
-    if (serverError) {
-      return serverError;
-    }
-    const control = this.form.controls[field];
-    if (!control.touched || !control.errors) {
-      return null;
-    }
-    // Mot de passe : « obligatoire » s'il est vide, la règle seulement s'il ne la respecte pas
-    return MESSAGES[field][Object.keys(control.errors)[0]] ?? null;
+    // Mot de passe : la première erreur est « required » s'il est vide, sinon « password » (la règle)
+    return fieldError(this.form.controls[field], this.serverErrors()[field], MESSAGES[field]);
   }
 
   protected submit(): void {
