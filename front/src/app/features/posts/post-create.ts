@@ -25,13 +25,14 @@ const MESSAGES: Record<Field, Record<string, string>> = {
 };
 
 /**
- * Page « Créer un article » (sans mise en forme avant l'étape 6). L'auteur et la date
- * sont définis par le serveur ; après la création, la page de l'article s'ouvre.
+ * Page « Créer un article ». L'auteur et la date sont définis par le serveur ; après la
+ * création, la page de l'article s'ouvre.
  */
 @Component({
   selector: 'app-post-create',
   imports: [ReactiveFormsModule, BackLink],
   templateUrl: './post-create.html',
+  styleUrl: './post-create.scss',
 })
 export class PostCreate implements OnInit {
   protected readonly topicStore = inject(TopicStore);
@@ -76,8 +77,13 @@ export class PostCreate implements OnInit {
 
   protected submit(): void {
     const { topicId, title, content } = this.form.getRawValue();
-    if (this.form.invalid || topicId === null || this.submitting()) {
+    // Bouton toujours actif : un formulaire invalide affiche tous ses messages, sans envoi
+    if (this.form.invalid || topicId === null) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Double clic pendant l'envoi : une seule requête
+    if (this.submitting()) {
       return;
     }
     this.submitting.set(true);
