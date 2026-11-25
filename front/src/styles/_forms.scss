@@ -5,19 +5,14 @@
   gap: var(--space-xs);
 }
 
-.field label {
-  font-size: var(--font-size-small);
-}
-
 .field input,
 .field select,
 .field textarea {
   width: 100%;
   min-height: var(--input-height);
   padding: var(--space-sm);
-  font-size: var(--font-size-small);
   background: var(--color-background);
-  border: var(--border-width) solid var(--color-primary);
+  border: var(--border-width-md) solid var(--color-primary);
   border-radius: var(--radius-sm);
 }
 
@@ -30,11 +25,9 @@
 }
 
 .field__hint {
-  font-size: var(--font-size-small);
   color: var(--color-text-muted);
 }
 
 .field__error {
-  font-size: var(--font-size-small);
   color: var(--color-danger);
 }

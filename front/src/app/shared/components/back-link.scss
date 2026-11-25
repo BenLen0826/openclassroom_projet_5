@@ -1,7 +1,14 @@
+// La flèche occupe exactement la hauteur d'une ligne de titre (taille × interligne) et y est
+// centrée : posée à côté d'un titre, elle est alignée sur le milieu de sa première ligne.
 :host {
   display: inline-flex;
+  align-items: center;
+  height: calc(var(--font-size-page-title) * var(--line-height-body));
 }
 
+// Flèche longue et fine de la maquette (icône « keyboard_backspace »), 1,5 fois la taille de
+// l'icône de profil. Le trait étant fin, sa boîte peut dépasser la ligne de titre sans rien
+// décaler : elle reste centrée sur cette ligne.
 .material-icons-outlined {
-  font-size: var(--font-size-page-title);
+  font-size: calc(var(--avatar-size) * 1.5);
 }

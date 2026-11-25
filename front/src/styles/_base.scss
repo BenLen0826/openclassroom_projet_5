@@ -18,6 +18,9 @@ body {
   line-height: var(--line-height-body);
   color: var(--color-text);
   background: var(--color-background);
+  // Un mot très long sans espace (titre, nom d'utilisateur, lien collé) est coupé au lieu
+  // d'élargir la page : aucun défilement horizontal en mobile, quel que soit le contenu saisi
+  overflow-wrap: anywhere;
 }
 
 h1,
