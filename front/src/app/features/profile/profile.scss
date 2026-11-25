@@ -1,0 +1,29 @@
+// Titre « Profil utilisateur », formulaire centré, séparateur, « Abonnements » centré (maquette)
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+
+  h1,
+  h2 {
+    text-align: center;
+  }
+
+  // « Abonnements » : même taille que « Profil utilisateur » (maquette). Réglé ici et non dans
+  // la règle globale des h2, car d'autres h2 restent plus petits (« Commentaires »)
+  h2 {
+    font-size: var(--font-size-page-title);
+  }
+
+  > p {
+    text-align: center;
+  }
+
+  .separator {
+    margin: 0;
+  }
+}
+
+.profile__saved {
+  text-align: center;
+}

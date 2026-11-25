@@ -12,8 +12,7 @@ import { passwordValidator } from '../../shared/validators/password.validator';
 const LOAD_ERROR = 'Impossible de charger le profil. Réessayez plus tard.';
 
 /**
- * Page « Profil » : consultation et modification du profil, puis les abonnements
- * (sans mise en forme avant l'étape 6).
+ * Page « Profil » : consultation et modification du profil, puis les abonnements.
  * <p>
  * Les données du profil ne servent qu'à cette page : elles sont lues par le service,
  * sans store. Les abonnements viennent du `TopicStore`, partagé avec la page des thèmes.
@@ -22,6 +21,7 @@ const LOAD_ERROR = 'Impossible de charger le profil. Réessayez plus tard.';
   selector: 'app-profile',
   imports: [ReactiveFormsModule, TopicCard],
   templateUrl: './profile.html',
+  styleUrl: './profile.scss',
 })
 export class Profile implements OnInit {
   protected readonly store = inject(TopicStore);
@@ -75,8 +75,13 @@ export class Profile implements OnInit {
   }
 
   protected submit(): void {
-    if (this.form.invalid || this.submitting()) {
+    // Bouton toujours actif : un formulaire invalide affiche tous ses messages, sans envoi
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Double clic pendant l'envoi : une seule requête
+    if (this.submitting()) {
       return;
     }
     this.submitting.set(true);
