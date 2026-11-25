@@ -64,7 +64,36 @@ describe('Profile', () => {
     expect(input('username').value).toBe('bob');
     expect(input('email').value).toBe('bob@mail.fr');
     expect(input('password').value).toBe('');
+  });
+
+  it('has the title of the mockup', async () => {
+    await render();
+
+    expect(page.querySelector('h1')?.textContent?.trim()).toBe('Profil utilisateur');
+  });
+
+  it('uses the placeholders of the mockup, with labels kept for screen readers', async () => {
+    await render();
+
+    expect(input('username').getAttribute('placeholder')).toBe('Username');
+    expect(input('email').getAttribute('placeholder')).toBe('email@email.fr');
+    expect(input('password').getAttribute('placeholder')).toBe('Mot de passe');
+    const labels = [...page.querySelectorAll('form label')];
+    expect(labels.map((l) => l.getAttribute('for'))).toEqual(['username', 'email', 'password']);
+    labels.forEach((l) => expect(l.classList.contains('visually-hidden')).toBe(true));
+    expect(labels[2].textContent).toContain("laisser vide pour garder l'actuel");
+  });
+
+  it('shows the message and calls nothing when an invalid profile is sent', async () => {
+    await render();
+    await type('username', '');
+
+    saveButton().click();
+    await fixture.whenStable();
+
     expect(saveButton().disabled).toBe(false);
+    expect(errorUnder('username')).toBe("Le nom d'utilisateur est obligatoire.");
+    expect(userService.updateMe).not.toHaveBeenCalled();
   });
 
   it('sends the profile without password when the field is empty', async () => {
@@ -127,21 +156,19 @@ describe('Profile', () => {
     await render();
     await type('password', '');
     expect(errorUnder('password')).toBeUndefined();
-    expect(saveButton().disabled).toBe(false);
 
     await type('password', 'abc');
 
     expect(errorUnder('password')).toBe(PASSWORD_RULE_MESSAGE);
-    expect(saveButton().disabled).toBe(true);
   });
 
-  it('disables the button while saving (no double submission)', async () => {
+  it('sends only once on a double click', async () => {
     await render();
 
     await save(new Subject<User>());
     saveButton().click();
+    await fixture.whenStable();
 
-    expect(saveButton().disabled).toBe(true);
     expect(userService.updateMe).toHaveBeenCalledTimes(1);
   });
 
@@ -161,8 +188,17 @@ describe('Profile', () => {
 
     const cards = page.querySelectorAll('app-topic-card');
     expect(cards.length).toBe(1);
-    expect(cards[0].querySelector('h2')?.textContent).toContain('Java');
+    expect(cards[0].querySelector('h3')?.textContent).toContain('Java');
     expect(cards[0].querySelector('button')?.textContent?.trim()).toBe('Se désabonner');
+  });
+
+  it('nests the topic titles under the "Abonnements" section title', async () => {
+    await render();
+
+    const sectionTitle = [...page.querySelectorAll('h2')].map((h) => h.textContent?.trim());
+    expect(sectionTitle).toEqual(['Abonnements']);
+    expect(page.querySelector('app-topic-card h3')).not.toBeNull();
+    expect(page.querySelector('app-topic-card h2')).toBeNull();
   });
 
   it('unsubscribing removes the card', async () => {
