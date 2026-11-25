@@ -2,6 +2,7 @@ package com.openclassrooms.mddapi.controller;
 
 import com.openclassrooms.mddapi.dto.CommentDto;
 import com.openclassrooms.mddapi.dto.CreateCommentRequest;
+import com.openclassrooms.mddapi.security.CurrentUser;
 import com.openclassrooms.mddapi.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,6 @@ public class CommentController {
     @ResponseStatus(HttpStatus.CREATED)
     public CommentDto create(@AuthenticationPrincipal Jwt jwt, @PathVariable Long postId,
                              @Valid @RequestBody CreateCommentRequest request) {
-        return commentService.create(Long.valueOf(jwt.getSubject()), postId, request);
+        return commentService.create(CurrentUser.id(jwt), postId, request);
     }
 }

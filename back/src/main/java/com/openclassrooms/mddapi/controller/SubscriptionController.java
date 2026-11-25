@@ -1,5 +1,6 @@
 package com.openclassrooms.mddapi.controller;
 
+import com.openclassrooms.mddapi.security.CurrentUser;
 import com.openclassrooms.mddapi.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,12 +24,12 @@ public class SubscriptionController {
     @PostMapping("/{topicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void subscribe(@AuthenticationPrincipal Jwt jwt, @PathVariable Long topicId) {
-        subscriptionService.subscribe(Long.valueOf(jwt.getSubject()), topicId);
+        subscriptionService.subscribe(CurrentUser.id(jwt), topicId);
     }
 
     @DeleteMapping("/{topicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unsubscribe(@AuthenticationPrincipal Jwt jwt, @PathVariable Long topicId) {
-        subscriptionService.unsubscribe(Long.valueOf(jwt.getSubject()), topicId);
+        subscriptionService.unsubscribe(CurrentUser.id(jwt), topicId);
     }
 }

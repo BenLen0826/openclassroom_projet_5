@@ -2,6 +2,7 @@ package com.openclassrooms.mddapi.controller;
 
 import com.openclassrooms.mddapi.dto.CreatePostRequest;
 import com.openclassrooms.mddapi.dto.PostDto;
+import com.openclassrooms.mddapi.security.CurrentUser;
 import com.openclassrooms.mddapi.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,14 +29,14 @@ public class PostController {
     /** Fil d'actualité de l'utilisateur connecté, du plus récent au plus ancien. */
     @GetMapping
     public List<PostDto> getFeed(@AuthenticationPrincipal Jwt jwt) {
-        return postService.getFeed(Long.valueOf(jwt.getSubject()));
+        return postService.getFeed(CurrentUser.id(jwt));
     }
 
     /** Publication : l'auteur est déduit du token, la date est mise par le serveur. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PostDto create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreatePostRequest request) {
-        return postService.create(Long.valueOf(jwt.getSubject()), request);
+        return postService.create(CurrentUser.id(jwt), request);
     }
 
     @GetMapping("/{id}")

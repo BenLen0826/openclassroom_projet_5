@@ -2,6 +2,7 @@ package com.openclassrooms.mddapi.controller;
 
 import com.openclassrooms.mddapi.dto.UpdateProfileRequest;
 import com.openclassrooms.mddapi.dto.UserDto;
+import com.openclassrooms.mddapi.security.CurrentUser;
 import com.openclassrooms.mddapi.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,11 @@ public class UserController {
 
     @GetMapping
     public UserDto getMe(@AuthenticationPrincipal Jwt jwt) {
-        return userService.getMe(Long.valueOf(jwt.getSubject()));
+        return userService.getMe(CurrentUser.id(jwt));
     }
 
     @PutMapping
     public UserDto updateMe(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpdateProfileRequest request) {
-        return userService.updateMe(Long.valueOf(jwt.getSubject()), request);
+        return userService.updateMe(CurrentUser.id(jwt), request);
     }
 }
