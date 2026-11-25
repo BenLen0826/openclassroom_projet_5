@@ -13,17 +13,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class MddApiApplicationTests {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
-	@Test
-	void demoDataIsNotLoadedOutsideTheDevProfile() {
-		// Comptes au mot de passe connu : jamais en dehors du profil dev
-		assertThat(context.getBeanProvider(DevDataInitializer.class).getIfAvailable()).isNull();
-	}
+    @Test
+    void demoDataIsNotLoadedOutsideTheDevProfile() {
+        // Comptes au mot de passe connu : jamais en dehors du profil dev
+        assertThat(context.getBeanProvider(DevDataInitializer.class).getIfAvailable()).isNull();
+    }
 
 }
