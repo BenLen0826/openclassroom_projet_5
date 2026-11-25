@@ -1,0 +1,31 @@
+:host {
+  display: block; // élément d'une grille : la carte prend toute la hauteur de sa case
+}
+
+// Carte de thème : fond gris, nom, description, bouton centré en bas (maquette)
+.topic-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  height: 100%;
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+// Même aspect en h2 ou en h3
+.topic-card__title {
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.topic-card__description {
+  font-size: var(--font-size-card-body);
+}
+
+// Poussé en bas : les boutons restent alignés même si les descriptions ont des longueurs différentes
+.topic-card__action {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+}

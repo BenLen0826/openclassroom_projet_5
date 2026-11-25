@@ -1,4 +1,13 @@
-<h2>{{ topic().name }}</h2>
-<p>{{ topic().description }}</p>
-<!-- Emplacement du bouton fourni par la page (projection de contenu) -->
-<ng-content />
+<article class="topic-card">
+  <!-- Niveau de titre choisi par la page (structure du document) ; aspect donné par la classe -->
+  @if (headingLevel() === 3) {
+    <h3 class="topic-card__title">{{ topic().name }}</h3>
+  } @else {
+    <h2 class="topic-card__title">{{ topic().name }}</h2>
+  }
+  <p class="topic-card__description">{{ topic().description }}</p>
+  <!-- Emplacement du bouton fourni par la page (projection de contenu), centré en bas de la carte -->
+  <div class="topic-card__action">
+    <ng-content />
+  </div>
+</article>

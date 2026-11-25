@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { TopicStore } from '../../core/stores/topic.store';
 import { TopicCard } from '../../shared/components/topic-card';
 
-/** Page « Thèmes » : tous les thèmes, avec l'abonnement (sans mise en forme avant l'étape 6). */
+/** Page « Thèmes » : tous les thèmes, avec l'abonnement. */
 @Component({
   selector: 'app-topic-list',
   imports: [TopicCard],

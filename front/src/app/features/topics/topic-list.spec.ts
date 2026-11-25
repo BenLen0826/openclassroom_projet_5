@@ -43,6 +43,20 @@ describe('TopicList', () => {
       .find((card) => card.querySelector('h2')?.textContent?.includes(name))
       ?.querySelector('button') as HTMLButtonElement;
 
+  it('has a page title for screen readers', async () => {
+    const { page } = await renderWith(of(topics));
+
+    const title = page.querySelector('h1');
+    expect(title?.textContent?.trim()).toBe('Thèmes');
+    expect(title?.classList.contains('visually-hidden')).toBe(true);
+  });
+
+  it('shows the topics in a grid of cards', async () => {
+    const { page } = await renderWith(of(topics));
+
+    expect(page.querySelectorAll('.card-grid > app-topic-card').length).toBe(2);
+  });
+
   it('displays the name and description of each topic', async () => {
     const { page } = await renderWith(of(topics));
 
