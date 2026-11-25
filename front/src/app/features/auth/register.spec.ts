@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { AuthResponse } from '../../core/models/auth';
 import { AuthService } from '../../core/services/auth.service';
 import { PASSWORD_RULE_MESSAGE } from '../../shared/validators/password.validator';
@@ -54,19 +54,68 @@ describe('Register', () => {
   const httpError = (status: number, error: unknown) =>
     throwError(() => new HttpErrorResponse({ status, error }));
 
-  it('disables the submit button while the form is invalid', async () => {
-    const button = page.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-    expect(button.disabled).toBe(true);
+  const submitButton = () => page.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+  const passwordInput = () => page.querySelector<HTMLInputElement>('input[name="password"]')!;
 
-    await fillValidForm();
+  async function send(): Promise<void> {
+    submitButton().click();
+    await fixture.whenStable();
+  }
 
-    expect(button.disabled).toBe(false);
+  it('shows every message and calls nothing when an empty form is sent', async () => {
+    // Act
+    await send();
+
+    // Assert
+    expect(submitButton().disabled).toBe(false);
+    expect(errorUnder('username')).toBe("Le nom d'utilisateur est obligatoire.");
+    expect(errorUnder('email')).toBe("L'e-mail est obligatoire.");
+    expect(errorUnder('password')).toBe('Le mot de passe est obligatoire.');
+    expect(authService.register).not.toHaveBeenCalled();
+  });
+
+  it('does not show the password rule before any input', () => {
+    expect(page.textContent).not.toContain(PASSWORD_RULE_MESSAGE);
+    expect(passwordInput().hasAttribute('aria-describedby')).toBe(false);
   });
 
   it('shows the password rule under the field when the password is too weak', async () => {
     await type('password', 'abc');
 
     expect(errorUnder('password')).toBe(PASSWORD_RULE_MESSAGE);
+    expect(passwordInput().getAttribute('aria-describedby')).toBe('password-error');
+  });
+
+  it('shows only the required message under an empty password, not the rule', async () => {
+    await type('password', '');
+
+    expect(errorUnder('password')).toBe('Le mot de passe est obligatoire.');
+    expect(page.textContent).not.toContain(PASSWORD_RULE_MESSAGE);
+  });
+
+  it('shows a server error under the password', async () => {
+    await submitWith(
+      httpError(400, { errors: { password: 'Mot de passe refusé par le serveur.' } }),
+    );
+
+    expect(errorUnder('password')).toBe('Mot de passe refusé par le serveur.');
+  });
+
+  it('sends only once on a double submission', async () => {
+    // Arrange : la première requête ne répond pas encore
+    authService.register.mockReturnValue(new Subject<AuthResponse>());
+    await fillValidForm();
+
+    // Act
+    await send();
+    await send();
+
+    // Assert
+    expect(authService.register).toHaveBeenCalledTimes(1);
+  });
+
+  it('links back to the home page', () => {
+    expect(page.querySelector('a[aria-label="Retour"]')?.getAttribute('href')).toBe('/');
   });
 
   it('navigates to /posts after a successful registration', async () => {

@@ -1,0 +1,30 @@
+@use 'breakpoints' as *;
+
+// Accueil : logo et boutons centrés dans la hauteur de l'écran (pas d'en-tête sur cette page).
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xl);
+  min-height: 100vh; // repli pour les navigateurs sans svh
+  min-height: 100svh; // hauteur réellement visible en mobile (sans la barre d'adresse)
+}
+
+.home__logo {
+  width: 80%;
+  max-width: var(--form-max-width);
+}
+
+// L'un sous l'autre en mobile, côte à côte en desktop (maquette)
+.home__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+
+  @include desktop {
+    flex-direction: row;
+    gap: var(--space-xl);
+  }
+}

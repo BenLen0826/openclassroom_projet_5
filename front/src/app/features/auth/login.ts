@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthStore } from '../../core/stores/auth.store';
+import { BackLink } from '../../shared/components/back-link';
 
 type Field = 'identifier' | 'password';
 
@@ -15,10 +16,10 @@ const REQUIRED_MESSAGES: Record<Field, string> = {
 
 const GENERAL_ERROR = 'Une erreur est survenue. Réessayez plus tard.';
 
-/** Page « Se connecter » par e-mail ou nom d'utilisateur (sans mise en forme avant l'étape 6). */
+/** Page « Se connecter » par e-mail ou nom d'utilisateur. */
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, BackLink],
   templateUrl: './login.html',
 })
 export class Login {
@@ -46,8 +47,13 @@ export class Login {
   }
 
   protected submit(): void {
-    if (this.form.invalid || this.submitting()) {
+    // Bouton toujours actif : un formulaire invalide affiche tous ses messages
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Double clic pendant l'envoi : une seule requête
+    if (this.submitting()) {
       return;
     }
     this.submitting.set(true);
