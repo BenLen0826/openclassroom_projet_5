@@ -10,7 +10,8 @@ Légende de la colonne « Source » :
 
 - **PDF** : valeur exacte extraite de l'export PDF par un script ;
 - **Figma** : valeur relevée par l'utilisateur dans Figma ;
-- **Validée** : valeur proposée par l'IA (absente de la maquette ou non lisible dans le PDF), vérifiée et validée par l'utilisateur.
+- **Validée** : valeur proposée par l'IA (absente de la maquette ou non lisible dans le PDF), vérifiée et validée par l'utilisateur ;
+- **Demandée par l'utilisateur** : valeur ajoutée par l'utilisateur pendant l'intégration (contrôle visuel).
 
 ---
 
@@ -31,7 +32,7 @@ Les couleurs de l'export PDF sont exactes (lues dans le fichier, pas estimées �
 | `--color-surface` | Fond des cartes d'article et de thème | `#F5F5F5` | PDF |
 | `--color-surface-alt` | Bulle d'un commentaire | `#EEEEEE` | PDF |
 | `--color-disabled` | Bouton « Déjà abonné » | `#939393` | PDF |
-| `--color-border` | Séparateurs (sous l'en-tête, avant les commentaires et les abonnements) | `#D9D9D9` | PDF |
+| `--color-border` | Séparateurs (sous l'en-tête, avant les commentaires et les abonnements), bord du menu mobile | `#000000` | Demandée par l'utilisateur (PDF : `#D9D9D9`) |
 | `--color-backdrop` | Fond assombri derrière le menu mobile (absent de la maquette) | `rgb(0 0 0 / 40%)` | Validée |
 
 Couleurs relevées mais non attribuées : `#EFEFEF` (une fois) et `#8A8C8C` (deux fois).
@@ -46,8 +47,9 @@ Couleurs relevées mais non attribuées : `#EFEFEF` (une fois) et `#8A8C8C` (deu
 | `--font-size-page-title` | Titres de page (« Inscription », « Profil utilisateur », « Créer un nouvel article ») | 24 px | Validée |
 | `--font-size-card-title` | Titre d'une carte d'article ou de thème | 16 px | Validée |
 | `--font-size-card-body` | Texte courant des cartes | 14 px | Figma |
-| `--font-size-body` | Texte courant, contenu d'un article | 20 px | Figma |
-| `--font-size-small` | Date, auteur, labels des champs, extraits | 14 px | Validée |
+| `--font-size-body` | Texte courant de toute l'application (taille du `body`, héritée partout sauf exceptions ci-dessus et ci-dessous) | 20 px | Figma |
+
+Un jeton `--font-size-small` (14 px, proposé par l'IA pour la date, l'auteur et les labels) a été retiré le 25/11/2026 à la demande de l'utilisateur : le texte garde les 20 px de la maquette, seules les tailles relevées dans Figma (titres, cartes, boutons) la remplacent.
 | `--font-size-button` | Texte des boutons | 16 px | Figma |
 | `--font-weight-regular` | Texte courant | 400 | Validée |
 | `--font-weight-bold` | Titres, boutons | 600 | Validée |
@@ -57,11 +59,11 @@ Couleurs relevées mais non attribuées : `#EFEFEF` (une fois) et `#8A8C8C` (deu
 
 | Jeton | Usage | Valeur | Source |
 |-------|-------|--------|--------|
-| `--space-xs` | Entre un label et son champ | 4 px | Validée |
-| `--space-sm` | Entre deux champs, dans une carte | 8 px | Validée |
-| `--space-md` | Marge intérieure des cartes, entre deux cartes | 16 px | Validée |
-| `--space-lg` | Entre deux sections (formulaire du profil / abonnements) | 24 px | Validée |
-| `--space-xl` | Marges de page (desktop) | 32 px | Validée |
+| `--space-xs` | Entre un label et son champ | 12 px | Validée (4 px, puis +8 px à la demande de l'utilisateur) |
+| `--space-sm` | Entre deux champs, dans une carte | 16 px | Validée (8 px, puis +8 px) |
+| `--space-md` | Marge intérieure des cartes, entre deux cartes | 24 px | Validée (16 px, puis +8 px) |
+| `--space-lg` | Entre deux sections (formulaire du profil / abonnements) | 32 px | Validée (24 px, puis +8 px) |
+| `--space-xl` | Marges de page (desktop) | 40 px | Validée (32 px, puis +8 px) |
 
 ## 4. Formes et dimensions
 
@@ -69,7 +71,9 @@ Couleurs relevées mais non attribuées : `#EFEFEF` (une fois) et `#8A8C8C` (deu
 |-------|-------|--------|--------|
 | `--radius-sm` | Boutons, champs de saisie | 6 px | Validée |
 | `--radius-md` | Cartes, bulle de commentaire, zone de commentaire | 10 px | Validée |
-| `--border-width` | Bordure des champs | 1 px | Validée |
+| `--border-width` | Bordure de base : boutons, séparateurs, bord du menu mobile, zone de commentaire | 1 px | Validée |
+| `--border-width-md` | Bordure des champs des formulaires et bordure basse de l'en-tête | 2 px | Demandée par l'utilisateur |
+| `--border-width-lg` | Non utilisée pour l'instant (d'abord prévue pour l'en-tête) | 4 px | Demandée par l'utilisateur |
 | `--input-height` | Hauteur d'un champ sur une ligne | 40 px | Validée |
 | `--button-height` | Hauteur d'un bouton | 36 px | Validée |
 | `--form-max-width` | Largeur des formulaires (inscription, connexion, création, profil) | 360 px | Validée |
