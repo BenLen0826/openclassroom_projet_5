@@ -6,7 +6,7 @@
   justify-content: space-between;
   height: var(--header-height);
   padding: 0 var(--space-md);
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width-md) solid var(--color-border);
 
   @include desktop {
     padding: 0 var(--space-xl);
@@ -46,7 +46,6 @@ img.header__logo {
 
 .header__logout {
   padding: 0;
-  font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
   color: var(--color-danger);
   background: none;

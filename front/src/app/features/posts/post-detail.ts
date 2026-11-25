@@ -18,6 +18,7 @@ const LOAD_ERROR = "Impossible de charger l'article. Réessayez plus tard.";
   selector: 'app-post-detail',
   imports: [DatePipe, BackLink, CommentSection],
   templateUrl: './post-detail.html',
+  styleUrl: './post-detail.scss',
 })
 export class PostDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);

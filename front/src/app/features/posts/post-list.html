@@ -1,19 +1,35 @@
-<h1>Articles</h1>
+<div class="page">
+  <!-- La maquette n'affiche pas de titre (l'en-tête montre « Articles ») : lu par les lecteurs d'écran -->
+  <h1 class="visually-hidden">Articles</h1>
 
-<a routerLink="/posts/new">Créer un article</a>
-<!-- ↓ : du plus récent au plus ancien ; ↑ : du plus ancien au plus récent -->
-<button type="button" (click)="store.toggleOrder()">
-  Trier par date {{ store.order() === 'desc' ? '↓' : '↑' }}
-</button>
+  <div class="feed__actions">
+    <a class="btn" routerLink="/posts/new">Créer un article</a>
+    <!-- ↓ : du plus récent au plus ancien ; ↑ : du plus ancien au plus récent -->
+    <button
+      type="button"
+      class="feed__sort"
+      [attr.aria-label]="
+        store.order() === 'desc'
+          ? 'Trier par date, du plus récent au plus ancien'
+          : 'Trier par date, du plus ancien au plus récent'
+      "
+      (click)="store.toggleOrder()"
+    >
+      Trier par {{ store.order() === 'desc' ? '↓' : '↑' }}
+    </button>
+  </div>
 
-@if (store.loading() && store.posts().length === 0) {
-  <p>Chargement…</p>
-} @else if (store.error(); as error) {
-  <p role="alert">{{ error }}</p>
-} @else {
-  @for (post of store.posts(); track post.id) {
-    <app-post-card [post]="post" />
-  } @empty {
-    <p>Aucun article pour l'instant. Abonnez-vous à des thèmes pour remplir votre fil.</p>
+  @if (store.loading() && store.posts().length === 0) {
+    <p>Chargement…</p>
+  } @else if (store.error(); as error) {
+    <p class="field__error" role="alert">{{ error }}</p>
+  } @else {
+    <div class="card-grid">
+      @for (post of store.posts(); track post.id) {
+        <app-post-card [post]="post" />
+      } @empty {
+        <p>Aucun article pour l'instant. Abonnez-vous à des thèmes pour remplir votre fil.</p>
+      }
+    </div>
   }
-}
+</div>

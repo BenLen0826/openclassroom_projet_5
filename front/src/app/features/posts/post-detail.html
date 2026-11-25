@@ -1,17 +1,30 @@
-<app-back-link to="/posts" />
+<div class="page">
+  @if (error(); as message) {
+    <app-back-link to="/posts" />
+    <p class="field__error" role="alert">{{ message }}</p>
+  } @else if (post(); as post) {
+    <!-- Flèche dans la marge gauche ; titre et contenu dans une colonne à sa droite (desktop) -->
+    <div class="post-detail">
+      <app-back-link class="post-detail__back" to="/posts" />
+      <h1 class="post-detail__title">{{ post.title }}</h1>
 
-@if (error(); as message) {
-  <p role="alert">{{ message }}</p>
-} @else if (post(); as post) {
-  <article>
-    <h1>{{ post.title }}</h1>
-    <p>
-      {{ post.createdAt | date: 'dd/MM/yyyy' }} · {{ post.authorUsername }} · {{ post.topicName }}
-    </p>
-    <p>{{ post.content }}</p>
-  </article>
+      <div class="post-detail__body">
+        <article>
+          <p class="post-detail__meta">
+            <span>{{ post.createdAt | date: 'dd/MM/yyyy' }}</span>
+            <span>{{ post.authorUsername }}</span>
+            <span>{{ post.topicName }}</span>
+          </p>
+          <p class="post-detail__content">{{ post.content }}</p>
+        </article>
 
-  <app-comment-section [postId]="post.id" />
-} @else {
-  <p>Chargement…</p>
-}
+        <hr class="separator" />
+
+        <app-comment-section [postId]="post.id" />
+      </div>
+    </div>
+  } @else {
+    <app-back-link to="/posts" />
+    <p>Chargement…</p>
+  }
+</div>

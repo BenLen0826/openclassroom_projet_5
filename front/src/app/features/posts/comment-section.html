@@ -1,38 +1,39 @@
-<section>
+<section class="comments">
   <h2>Commentaires</h2>
 
   @if (loadError(); as message) {
-    <p role="alert">{{ message }}</p>
+    <p class="field__error" role="alert">{{ message }}</p>
   } @else {
-    @for (comment of comments(); track comment.id) {
-      <app-comment-item [comment]="comment" />
-    } @empty {
-      <p>Aucun commentaire pour l'instant.</p>
-    }
+    <div class="comments__list">
+      @for (comment of comments(); track comment.id) {
+        <app-comment-item [comment]="comment" />
+      } @empty {
+        <p>Aucun commentaire pour l'instant.</p>
+      }
+    </div>
 
     <!-- Formulaire seulement si la liste est chargée : sinon un commentaire envoyé resterait invisible -->
-    <form [formGroup]="form" (ngSubmit)="send()" novalidate>
-      <label for="content">Écrivez ici votre commentaire</label>
-      <textarea
-        id="content"
-        name="content"
-        formControlName="content"
-        placeholder="Écrivez ici votre commentaire"
-      ></textarea>
+    <form class="comments__form" [formGroup]="form" (ngSubmit)="send()" novalidate>
+      <div class="comments__input">
+        <label for="content" class="visually-hidden">Écrivez ici votre commentaire</label>
+        <textarea
+          id="content"
+          name="content"
+          rows="5"
+          formControlName="content"
+          placeholder="Écrivez ici votre commentaire"
+          [attr.aria-describedby]="contentError() ? 'content-error' : null"
+        ></textarea>
+        <button type="submit" class="icon-btn comments__send" aria-label="Envoyer le commentaire">
+          <span class="material-icons-outlined" aria-hidden="true">send</span>
+        </button>
+      </div>
       @if (contentError(); as message) {
-        <p id="content-error">{{ message }}</p>
+        <p class="field__error" id="content-error">{{ message }}</p>
       }
       @if (generalError(); as message) {
-        <p role="alert">{{ message }}</p>
+        <p class="field__error" role="alert">{{ message }}</p>
       }
-      <!-- Texte provisoire : l'icône d'envoi de la maquette arrive à l'étape 6 -->
-      <button
-        type="submit"
-        aria-label="Envoyer le commentaire"
-        [disabled]="form.invalid || sending()"
-      >
-        Envoyer
-      </button>
     </form>
   }
 </section>

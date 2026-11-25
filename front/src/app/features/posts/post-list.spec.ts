@@ -62,13 +62,35 @@ describe('PostList', () => {
   it('reverses the order and the arrow when sorting', async () => {
     await renderWith(of(feed));
     expect(titles()).toEqual(['Récent', 'Ancien']);
-    expect(sortButton().textContent?.trim()).toBe('Trier par date ↓');
+    expect(sortButton().textContent?.trim()).toBe('Trier par ↓');
 
     sortButton().click();
     await fixture.whenStable();
 
     expect(titles()).toEqual(['Ancien', 'Récent']);
-    expect(sortButton().textContent?.trim()).toBe('Trier par date ↑');
+    expect(sortButton().textContent?.trim()).toBe('Trier par ↑');
+  });
+
+  it('announces the sort order in the button label', async () => {
+    await renderWith(of(feed));
+    expect(sortButton().getAttribute('aria-label')).toBe(
+      'Trier par date, du plus récent au plus ancien',
+    );
+
+    sortButton().click();
+    await fixture.whenStable();
+
+    expect(sortButton().getAttribute('aria-label')).toBe(
+      'Trier par date, du plus ancien au plus récent',
+    );
+  });
+
+  it('has a page title for screen readers', async () => {
+    await renderWith(of(feed));
+
+    const title = page.querySelector('h1');
+    expect(title?.textContent?.trim()).toBe('Articles');
+    expect(title?.classList.contains('visually-hidden')).toBe(true);
   });
 
   it('shows a message when the feed is empty', async () => {

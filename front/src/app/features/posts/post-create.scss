@@ -1,0 +1,11 @@
+// Mise en page (flèche, titre, formulaire) : `.form-screen` dans _layout.scss.
+
+// Liste des thèmes : « Sélectionner un thème » en gris, comme un placeholder
+.post-create__placeholder {
+  color: var(--color-text-muted);
+
+  // Sinon, sous Chrome et Edge (Windows), les thèmes héritent du gris et paraissent désactivés
+  option {
+    color: var(--color-text);
+  }
+}

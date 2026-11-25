@@ -1,39 +1,62 @@
-<app-back-link to="/posts" />
-<h1>Créer un nouvel article</h1>
+<div class="page form-screen">
+  <app-back-link to="/posts" />
+  <h1>Créer un nouvel article</h1>
 
-<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-  <div>
-    <label for="topicId">Thème</label>
-    <select id="topicId" name="topicId" formControlName="topicId">
-      <option [ngValue]="null" disabled>Sélectionner un thème</option>
-      @for (topic of topicStore.topics(); track topic.id) {
-        <option [ngValue]="topic.id">{{ topic.name }}</option>
+  <form class="form-page" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <!-- Labels masqués : la maquette n'affiche que les placeholders, les lecteurs d'écran lisent les labels -->
+    <div class="field">
+      <label for="topicId" class="visually-hidden">Thème</label>
+      <select
+        id="topicId"
+        name="topicId"
+        formControlName="topicId"
+        [class.post-create__placeholder]="form.controls.topicId.value === null"
+        [attr.aria-describedby]="errorFor('topicId') ? 'topicId-error' : null"
+      >
+        <option [ngValue]="null" disabled>Sélectionner un thème</option>
+        @for (topic of topicStore.topics(); track topic.id) {
+          <option [ngValue]="topic.id">{{ topic.name }}</option>
+        }
+      </select>
+      @if (errorFor('topicId'); as message) {
+        <p class="field__error" id="topicId-error">{{ message }}</p>
       }
-    </select>
-    @if (errorFor('topicId'); as message) {
-      <p id="topicId-error">{{ message }}</p>
+    </div>
+
+    <div class="field">
+      <label for="title" class="visually-hidden">Titre</label>
+      <input
+        id="title"
+        name="title"
+        type="text"
+        formControlName="title"
+        placeholder="Titre de l'article"
+        [attr.aria-describedby]="errorFor('title') ? 'title-error' : null"
+      />
+      @if (errorFor('title'); as message) {
+        <p class="field__error" id="title-error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="content" class="visually-hidden">Contenu</label>
+      <textarea
+        id="content"
+        name="content"
+        rows="8"
+        formControlName="content"
+        placeholder="Contenu de l'article"
+        [attr.aria-describedby]="errorFor('content') ? 'content-error' : null"
+      ></textarea>
+      @if (errorFor('content'); as message) {
+        <p class="field__error" id="content-error">{{ message }}</p>
+      }
+    </div>
+
+    @if (generalError(); as message) {
+      <p class="field__error" role="alert">{{ message }}</p>
     }
-  </div>
 
-  <div>
-    <label for="title">Titre</label>
-    <input id="title" name="title" type="text" formControlName="title" />
-    @if (errorFor('title'); as message) {
-      <p id="title-error">{{ message }}</p>
-    }
-  </div>
-
-  <div>
-    <label for="content">Contenu</label>
-    <textarea id="content" name="content" formControlName="content"></textarea>
-    @if (errorFor('content'); as message) {
-      <p id="content-error">{{ message }}</p>
-    }
-  </div>
-
-  @if (generalError(); as message) {
-    <p role="alert">{{ message }}</p>
-  }
-
-  <button type="submit" [disabled]="form.invalid || submitting()">Créer</button>
-</form>
+    <button type="submit" class="btn">Créer</button>
+  </form>
+</div>

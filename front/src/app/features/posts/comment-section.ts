@@ -23,6 +23,7 @@ const MESSAGES: Record<string, string> = {
   selector: 'app-comment-section',
   imports: [ReactiveFormsModule, CommentItem],
   templateUrl: './comment-section.html',
+  styleUrl: './comment-section.scss',
 })
 export class CommentSection implements OnInit {
   private readonly commentService = inject(CommentService);
@@ -68,8 +69,13 @@ export class CommentSection implements OnInit {
   }
 
   protected send(): void {
-    if (this.form.invalid || this.sending()) {
+    // Bouton toujours actif : un commentaire vide affiche son message, sans envoi
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Double envoi pendant la requête : une seule requête
+    if (this.sending()) {
       return;
     }
     this.sending.set(true);

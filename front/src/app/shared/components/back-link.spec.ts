@@ -22,7 +22,7 @@ describe('BackLink', () => {
 
     expect(page.querySelector('a')?.getAttribute('aria-label')).toBe('Retour');
     const icon = page.querySelector('.material-icons-outlined');
-    expect(icon?.textContent?.trim()).toBe('arrow_back');
+    expect(icon?.textContent?.trim()).toBe('keyboard_backspace'); // flèche longue de la maquette
     expect(icon?.getAttribute('aria-hidden')).toBe('true');
   });
 });

@@ -14,7 +14,7 @@
   --color-surface: #f5f5f5;
   --color-surface-alt: #eeeeee;
   --color-disabled: #939393;
-  --color-border: #d9d9d9;
+  --color-border: #000000; // noir à la demande de l'utilisateur (maquette : #d9d9d9)
   --color-backdrop: rgb(0 0 0 / 40%); // fond assombri du menu mobile (non dessiné)
 
   // Typographie
@@ -23,23 +23,24 @@
   --font-size-card-title: 16px;
   --font-size-card-body: 14px;
   --font-size-body: 20px;
-  --font-size-small: 14px;
   --font-size-button: 16px;
   --font-weight-regular: 400;
   --font-weight-bold: 600;
   --line-height-body: 1.5;
 
   // Espacements
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 40px;
 
   // Formes et dimensions
   --radius-sm: 6px;
   --radius-md: 10px;
-  --border-width: 1px;
+  --border-width: 1px; // base : boutons, séparateurs, bord du menu mobile, zone de commentaire
+  --border-width-md: 2px; // champs des formulaires, bas de l'en-tête
+  --border-width-lg: 4px; // non utilisée pour l'instant
   --input-height: 40px;
   --button-height: 36px;
   --form-max-width: 360px;

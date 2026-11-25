@@ -1,0 +1,59 @@
+@use 'breakpoints' as *;
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+// Mobile : les commentaires prennent toute la largeur.
+// Desktop : la liste s'arrête au bord droit de la zone de texte, seul le bouton d'envoi dépasse.
+// Place réservée = largeur du bouton (celle de son icône) + espace entre la zone et le bouton.
+.comments__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+
+  @include desktop {
+    padding-right: calc(var(--avatar-size) + var(--space-sm));
+  }
+}
+
+.comments__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+// Zone de texte arrondie, icône d'envoi violette à sa droite (maquette)
+.comments__input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+
+  textarea {
+    flex: 1;
+    min-width: 0;
+    padding: var(--space-sm);
+    border: var(--border-width) solid var(--color-text);
+    border-radius: var(--radius-md);
+    resize: vertical;
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+}
+
+.comments__send {
+  color: var(--color-primary);
+
+  // L'icône Material « send » pointe vers la droite ; la maquette la montre inclinée vers le haut à droite
+  .material-icons-outlined {
+    transform: rotate(-45deg);
+  }
+
+  &:hover {
+    color: var(--color-primary-hover);
+  }
+}

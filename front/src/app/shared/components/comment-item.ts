@@ -5,6 +5,7 @@ import { Comment } from '../../core/models/comment';
 @Component({
   selector: 'app-comment-item',
   templateUrl: './comment-item.html',
+  styleUrl: './comment-item.scss',
 })
 export class CommentItem {
   readonly comment = input.required<Comment>();

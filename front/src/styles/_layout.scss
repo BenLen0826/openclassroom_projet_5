@@ -27,8 +27,10 @@
   }
 }
 
-// Pages de compte (inscription, connexion) : flèche retour à gauche, logo (mobile) et titre centrés.
-.auth-page {
+// Pages faites d'un titre et d'un formulaire (inscription, connexion, création d'un article).
+// Mobile : flèche retour en haut à gauche, puis logo (comptes), titre et formulaire centrés.
+// Desktop : flèche dans la marge gauche, sur la ligne du titre centré ; formulaire dessous (maquette).
+.form-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,10 +39,30 @@
   > app-back-link {
     align-self: flex-start;
   }
+
+  @include desktop {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+
+    > app-back-link {
+      grid-area: 1 / 1;
+      justify-self: start;
+    }
+
+    > h1 {
+      grid-area: 1 / 2;
+      text-align: center;
+    }
+
+    > form {
+      grid-column: 1 / -1;
+    }
+  }
 }
 
 // Grand logo au-dessus du titre en mobile ; en desktop, l'en-tête l'affiche déjà.
-.auth-page__logo {
+.form-screen__logo {
   width: 60%;
   max-width: var(--form-max-width);
 
@@ -49,14 +71,15 @@
   }
 }
 
-// Grille de cartes : une colonne en mobile, deux en desktop.
+// Grille de cartes : une colonne en mobile, deux en desktop. `minmax(0, 1fr)` : une colonne
+// ne s'élargit jamais pour son contenu (les deux colonnes restent égales, la page ne déborde pas).
 .card-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
 
   @include desktop {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

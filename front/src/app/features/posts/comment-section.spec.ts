@@ -30,9 +30,11 @@ describe('CommentSection', () => {
 
   const textarea = () => page.querySelector<HTMLTextAreaElement>('textarea[name="content"]')!;
   const sendButton = () => page.querySelector<HTMLButtonElement>('form button[type="submit"]')!;
+  /** « auteur contenu » de chaque commentaire affiché, dans l'ordre. */
   const commentTexts = () =>
-    [...page.querySelectorAll('app-comment-item')].map((c) =>
-      c.textContent?.replace(/\s+/g, ' ').trim(),
+    [...page.querySelectorAll('app-comment-item')].map(
+      (c) =>
+        `${c.querySelector('strong')?.textContent?.trim()} ${c.querySelector('p')?.textContent?.trim()}`,
     );
 
   async function type(value: string): Promise<void> {
@@ -41,7 +43,7 @@ describe('CommentSection', () => {
     await fixture.whenStable();
   }
 
-  /** Envoie par l'événement `submit` du formulaire (même si le bouton est désactivé). */
+  /** Envoie par l'événement `submit` du formulaire. */
   async function submitForm(): Promise<void> {
     page.querySelector('form')!.dispatchEvent(new Event('submit'));
     await fixture.whenStable();
@@ -74,15 +76,24 @@ describe('CommentSection', () => {
     expect(commentService.getForPost).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the button while the comment is empty or only spaces', async () => {
+  it('shows the required message and calls nothing when an empty or blank comment is sent', async () => {
+    // Vide
     await render();
-    expect(sendButton().disabled).toBe(true);
-
-    await type('   ');
-    expect(sendButton().disabled).toBe(true);
-
-    await type('Bravo');
     expect(sendButton().disabled).toBe(false);
+    sendButton().click();
+    await fixture.whenStable();
+    expect(page.querySelector('#content-error')?.textContent?.trim()).toBe(
+      'Le commentaire est obligatoire.',
+    );
+
+    // Fait seulement d'espaces
+    await type('   ');
+    sendButton().click();
+    await fixture.whenStable();
+    expect(page.querySelector('#content-error')?.textContent?.trim()).toBe(
+      'Le commentaire est obligatoire.',
+    );
+    expect(commentService.create).not.toHaveBeenCalled();
   });
 
   it('sends only once on a double submission', async () => {
@@ -94,7 +105,15 @@ describe('CommentSection', () => {
     await submitForm();
 
     expect(commentService.create).toHaveBeenCalledTimes(1);
-    expect(sendButton().disabled).toBe(true);
+  });
+
+  it('shows the send icon, hidden from screen readers', async () => {
+    await render();
+
+    expect(sendButton().getAttribute('aria-label')).toBe('Envoyer le commentaire');
+    const icon = sendButton().querySelector('.material-icons-outlined');
+    expect(icon?.textContent?.trim()).toBe('send');
+    expect(icon?.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('shows the server error of a failed send and keeps the text', async () => {

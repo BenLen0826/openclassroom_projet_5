@@ -87,12 +87,42 @@ describe('PostCreate', () => {
     expect(options).toEqual(['Sélectionner un thème', 'Angular', 'Java']);
   });
 
-  it('disables the button while the form is invalid', async () => {
-    expect(button().disabled).toBe(true);
+  async function send(): Promise<void> {
+    button().click();
+    await fixture.whenStable();
+  }
 
-    await fillValidForm();
-
+  it('shows every message and calls nothing when an empty form is sent', async () => {
     expect(button().disabled).toBe(false);
+
+    await send();
+
+    expect(errorUnder('topicId')).toBe('Le thème est obligatoire.');
+    expect(errorUnder('title')).toBe('Le titre est obligatoire.');
+    expect(errorUnder('content')).toBe('Le contenu est obligatoire.');
+    expect(postService.create).not.toHaveBeenCalled();
+  });
+
+  it('shows the topic message when only the topic is missing', async () => {
+    await fill('title', 'Titre');
+    await fill('content', 'Contenu');
+
+    await send();
+
+    expect(errorUnder('topicId')).toBe('Le thème est obligatoire.');
+    expect(postService.create).not.toHaveBeenCalled();
+  });
+
+  it('uses the placeholders of the mockup, with labels kept for screen readers', () => {
+    expect(page.querySelector('[name="title"]')?.getAttribute('placeholder')).toBe(
+      "Titre de l'article",
+    );
+    expect(page.querySelector('[name="content"]')?.getAttribute('placeholder')).toBe(
+      "Contenu de l'article",
+    );
+    const labels = [...page.querySelectorAll('label')];
+    expect(labels.map((l) => l.getAttribute('for'))).toEqual(['topicId', 'title', 'content']);
+    labels.forEach((l) => expect(l.classList.contains('visually-hidden')).toBe(true));
   });
 
   it('shows the messages under touched empty fields', async () => {
@@ -132,8 +162,8 @@ describe('PostCreate', () => {
   it('sends only once on a double click', async () => {
     await submitWith(new Subject<Post>());
     button().click();
+    await fixture.whenStable();
 
-    expect(button().disabled).toBe(true);
     expect(postService.create).toHaveBeenCalledTimes(1);
   });
 
