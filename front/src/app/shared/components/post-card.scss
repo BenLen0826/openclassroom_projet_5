@@ -28,12 +28,13 @@
   gap: var(--space-xl);
 }
 
-// Extrait : 4 lignes au plus, retours à la ligne gardés (mots très longs coupés : voir _base.scss)
+// Extrait : 5 lignes au plus, « … » seulement au-delà (commentaire de la maquette) ;
+// retours à la ligne gardés (mots très longs coupés : voir _base.scss)
 .post-card__excerpt {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
   overflow: hidden;
   white-space: pre-line;
 }

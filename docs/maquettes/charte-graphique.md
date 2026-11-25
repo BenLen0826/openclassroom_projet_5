@@ -11,7 +11,8 @@ Légende de la colonne « Source » :
 - **PDF** : valeur exacte extraite de l'export PDF par un script ;
 - **Figma** : valeur relevée par l'utilisateur dans Figma ;
 - **Validée** : valeur proposée par l'IA (absente de la maquette ou non lisible dans le PDF), vérifiée et validée par l'utilisateur ;
-- **Demandée par l'utilisateur** : valeur ajoutée par l'utilisateur pendant l'intégration (contrôle visuel).
+- **Demandée par l'utilisateur** : valeur ajoutée par l'utilisateur pendant l'intégration (contrôle visuel) ;
+- **Proposée par l'IA** : valeur absente de la maquette, en attente de validation au contrôle visuel.
 
 ---
 
@@ -80,6 +81,7 @@ Un jeton `--font-size-small` (14 px, proposé par l'IA pour la date, l'auteur et
 | `--content-max-width` | Largeur maximale du contenu (fil, thèmes, article) | 1100 px | Validée |
 | `--header-height` | Hauteur de l'en-tête | 64 px | Validée |
 | `--avatar-size` | Icône de profil de l'en-tête | 36 px | Validée |
+| `--transition-duration` | Durée du glissement du menu mobile et du fondu de son overlay (commentaire de la maquette) | 300 ms | Proposée par l'IA |
 
 ## 5. Mise en page responsive
 
