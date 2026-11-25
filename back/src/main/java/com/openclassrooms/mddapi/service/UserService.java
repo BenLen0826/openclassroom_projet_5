@@ -68,6 +68,6 @@ public class UserService {
     }
 
     private User findUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(UnknownUserException::new);
+        return UserLookup.existingUser(userRepository, userId);
     }
 }

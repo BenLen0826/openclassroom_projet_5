@@ -35,9 +35,7 @@ public class PostService {
      */
     @Transactional(readOnly = true)
     public List<PostDto> getFeed(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UnknownUserException();
-        }
+        UserLookup.requireExistingUser(userRepository, userId);
         return postMapper.toDtoList(postRepository.findFeed(userId));
     }
 
@@ -49,7 +47,7 @@ public class PostService {
      */
     @Transactional
     public PostDto create(Long userId, CreatePostRequest request) {
-        User author = userRepository.findById(userId).orElseThrow(UnknownUserException::new);
+        User author = UserLookup.existingUser(userRepository, userId);
         Topic topic = topicRepository.findById(request.topicId()).orElseThrow(TopicNotFoundException::new);
         return postMapper.toDto(postRepository.save(new Post(request.title(), request.content(), author, topic)));
     }

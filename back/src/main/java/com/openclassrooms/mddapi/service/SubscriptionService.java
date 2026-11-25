@@ -52,7 +52,7 @@ public class SubscriptionService {
     }
 
     private User findUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(UnknownUserException::new);
+        return UserLookup.existingUser(userRepository, userId);
     }
 
     private Topic findTopic(Long topicId) {

@@ -28,9 +28,7 @@ public class TopicService {
      */
     @Transactional(readOnly = true)
     public List<TopicDto> getAllTopics(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UnknownUserException();
-        }
+        UserLookup.requireExistingUser(userRepository, userId);
         Set<Long> subscribedIds = userRepository.findSubscribedTopicIds(userId);
         return topicRepository.findAll(Sort.by("name")).stream()
                 .map(topic -> topicMapper.toDto(topic, subscribedIds.contains(topic.getId())))
