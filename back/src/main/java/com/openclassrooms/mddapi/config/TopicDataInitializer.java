@@ -50,6 +50,7 @@ public class TopicDataInitializer implements ApplicationRunner {
 
     private final TopicRepository topicRepository;
 
+    /** Ajoute au démarrage les thèmes de référence absents (repérés par leur nom). */
     @Override
     @Transactional
     public void run(ApplicationArguments args) {

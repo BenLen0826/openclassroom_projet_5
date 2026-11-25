@@ -22,11 +22,13 @@ import java.nio.charset.StandardCharsets;
 @EnableConfigurationProperties(JwtProperties.class)
 public class JwtConfig {
 
+    /** Génère les tokens à la connexion et à l'inscription, signés avec la clé secrète (HS256). */
     @Bean
     public JwtEncoder jwtEncoder(JwtProperties properties) {
         return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey(properties)));
     }
 
+    /** Vérifie la signature et l'expiration du token de chaque requête qui en porte un (utilisé par Spring Security). */
     @Bean
     public JwtDecoder jwtDecoder(JwtProperties properties) {
         return NimbusJwtDecoder.withSecretKey(secretKey(properties))

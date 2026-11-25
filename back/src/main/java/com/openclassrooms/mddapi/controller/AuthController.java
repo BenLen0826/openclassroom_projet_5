@@ -14,7 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-// Routes publiques : Swagger n'y envoie pas le token (un token périmé ferait refuser la connexion)
+/**
+ * Inscription et connexion : les deux seules routes métier publiques (sans token).
+ * <p>
+ * {@code @SecurityRequirements} vide : Swagger n'y envoie pas le token, un token périmé saisi
+ * dans « Authorize » ferait sinon refuser la connexion.
+ */
 @SecurityRequirements
 @RestController
 @RequestMapping("/api/auth")

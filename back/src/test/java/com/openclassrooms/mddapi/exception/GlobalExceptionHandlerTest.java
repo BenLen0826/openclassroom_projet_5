@@ -33,9 +33,9 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleInvalidCredentials_returns401WithGenericMessage() {
+    void handleUnauthorized_invalidCredentials_returns401WithGenericMessage() {
         // Act
-        ProblemDetail problem = handler.handleInvalidCredentials(new InvalidCredentialsException());
+        ProblemDetail problem = handler.handleUnauthorized(new InvalidCredentialsException());
 
         // Assert
         assertThat(problem.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
@@ -44,9 +44,9 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleUnknownUser_returns401() {
+    void handleUnauthorized_unknownUser_returns401() {
         // Act
-        ProblemDetail problem = handler.handleUnknownUser(new UnknownUserException());
+        ProblemDetail problem = handler.handleUnauthorized(new UnknownUserException());
 
         // Assert
         assertThat(problem.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
@@ -54,9 +54,9 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleTopicNotFound_returns404() {
+    void handleNotFound_topic_returns404() {
         // Act
-        ProblemDetail problem = handler.handleTopicNotFound(new TopicNotFoundException());
+        ProblemDetail problem = handler.handleNotFound(new TopicNotFoundException());
 
         // Assert
         assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -71,8 +71,8 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handlePostNotFound_returns404() {
-        ProblemDetail problem = handler.handlePostNotFound(new PostNotFoundException());
+    void handleNotFound_post_returns404() {
+        ProblemDetail problem = handler.handleNotFound(new PostNotFoundException());
 
         assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         assertThat(problem.getDetail()).isEqualTo("Article introuvable.");

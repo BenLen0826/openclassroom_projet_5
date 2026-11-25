@@ -30,6 +30,10 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
     private static final Pattern PASSWORD_PATTERN =
             Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,72}$");
 
+    /**
+     * Vérifie la règle du mot de passe et la limite de 72 octets de BCrypt. Une valeur absente
+     * ({@code null}) est acceptée : l'obligation est portée par {@code @NotBlank} quand elle s'applique.
+     */
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (password == null) {

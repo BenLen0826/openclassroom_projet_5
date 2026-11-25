@@ -26,6 +26,11 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
+    /**
+     * Profil de l'utilisateur connecté (sans le mot de passe).
+     *
+     * @throws UnknownUserException compte supprimé depuis la création du token ({@code 401})
+     */
     @Transactional(readOnly = true)
     public UserDto getMe(Long userId) {
         return userMapper.toDto(findUser(userId));
@@ -68,6 +73,6 @@ public class UserService {
     }
 
     private User findUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(UnknownUserException::new);
+        return UserLookup.existingUser(userRepository, userId);
     }
 }

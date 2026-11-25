@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 
+/** Thèmes : lecture de la liste, avec l'état d'abonnement de l'utilisateur connecté. */
 @Service
 @RequiredArgsConstructor
 public class TopicService {
@@ -28,9 +29,7 @@ public class TopicService {
      */
     @Transactional(readOnly = true)
     public List<TopicDto> getAllTopics(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UnknownUserException();
-        }
+        UserLookup.requireExistingUser(userRepository, userId);
         Set<Long> subscribedIds = userRepository.findSubscribedTopicIds(userId);
         return topicRepository.findAll(Sort.by("name")).stream()
                 .map(topic -> topicMapper.toDto(topic, subscribedIds.contains(topic.getId())))

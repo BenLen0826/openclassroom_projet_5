@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+/** Accès aux commentaires (Spring Data JPA). */
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     /**

@@ -4,6 +4,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Comment } from '../../core/models/comment';
 import { CommentService } from '../../core/services/comment.service';
 import { CommentItem } from '../../shared/components/comment-item';
+import { fieldError } from '../../shared/forms/field-error';
 import { readServerErrors } from '../../shared/forms/server-errors';
 
 const LOAD_ERROR = 'Impossible de charger les commentaires. Réessayez plus tard.';
@@ -58,14 +59,7 @@ export class CommentSection implements OnInit {
 
   /** Message sous la zone : celui du serveur, sinon celui de la validation locale. */
   protected contentError(): string | null {
-    const control = this.form.controls.content;
-    if (this.serverError()) {
-      return this.serverError();
-    }
-    if (!control.touched || !control.errors) {
-      return null;
-    }
-    return MESSAGES[Object.keys(control.errors)[0]] ?? null;
+    return fieldError(this.form.controls.content, this.serverError() ?? undefined, MESSAGES);
   }
 
   protected send(): void {

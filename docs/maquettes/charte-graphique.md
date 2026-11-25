@@ -74,7 +74,6 @@ Un jeton `--font-size-small` (14 px, proposé par l'IA pour la date, l'auteur et
 | `--radius-md` | Cartes, bulle de commentaire, zone de commentaire | 10 px | Validée |
 | `--border-width` | Bordure de base : boutons, séparateurs, bord du menu mobile, zone de commentaire | 1 px | Validée |
 | `--border-width-md` | Bordure des champs des formulaires et bordure basse de l'en-tête | 2 px | Demandée par l'utilisateur |
-| `--border-width-lg` | Non utilisée pour l'instant (d'abord prévue pour l'en-tête) | 4 px | Demandée par l'utilisateur |
 | `--input-height` | Hauteur d'un champ sur une ligne | 40 px | Validée |
 | `--button-height` | Hauteur d'un bouton | 36 px | Validée |
 | `--form-max-width` | Largeur des formulaires (inscription, connexion, création, profil) | 360 px | Validée |

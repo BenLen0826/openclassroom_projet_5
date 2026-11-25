@@ -27,6 +27,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+    /**
+     * Règles d'accès : inscription et connexion ({@code POST}) et documentation Swagger publiques,
+     * ainsi que le renvoi interne vers {@code /error} ; toute autre route exige un token JWT valide
+     * (refus par défaut). API sans session ni CSRF (le token passe par
+     * l'en-tête {@code Authorization}, pas par un cookie).
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -44,6 +50,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /** Hachage des mots de passe avec BCrypt (jamais stockés en clair). */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

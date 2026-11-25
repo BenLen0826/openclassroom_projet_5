@@ -50,7 +50,7 @@ public class CommentService {
      */
     @Transactional
     public CommentDto create(Long userId, Long postId, CreateCommentRequest request) {
-        User author = userRepository.findById(userId).orElseThrow(UnknownUserException::new);
+        User author = UserLookup.existingUser(userRepository, userId);
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         return commentMapper.toDto(commentRepository.save(new Comment(request.content(), author, post)));
     }

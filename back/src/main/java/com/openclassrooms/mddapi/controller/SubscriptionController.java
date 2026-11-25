@@ -1,5 +1,6 @@
 package com.openclassrooms.mddapi.controller;
 
+import com.openclassrooms.mddapi.security.CurrentUser;
 import com.openclassrooms.mddapi.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,15 +21,17 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
 
+    /** Abonnement à un thème ({@code 204}) ; déjà abonné : sans effet ; {@code 404} si le thème n'existe pas. */
     @PostMapping("/{topicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void subscribe(@AuthenticationPrincipal Jwt jwt, @PathVariable Long topicId) {
-        subscriptionService.subscribe(Long.valueOf(jwt.getSubject()), topicId);
+        subscriptionService.subscribe(CurrentUser.id(jwt), topicId);
     }
 
+    /** Désabonnement d'un thème ({@code 204}) ; {@code 404} si le thème n'existe pas. */
     @DeleteMapping("/{topicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unsubscribe(@AuthenticationPrincipal Jwt jwt, @PathVariable Long topicId) {
-        subscriptionService.unsubscribe(Long.valueOf(jwt.getSubject()), topicId);
+        subscriptionService.unsubscribe(CurrentUser.id(jwt), topicId);
     }
 }

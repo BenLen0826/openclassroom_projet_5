@@ -46,6 +46,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problem, headers, status, request);
     }
 
+    /**
+     * {@code 409} : e-mail ou nom d'utilisateur déjà pris. Le champ concerné ({@code field}) est
+     * ajouté à la réponse, pour afficher le message sous le bon champ.
+     *
+     * @param ex conflit, avec le champ concerné s'il est connu
+     * @return l'erreur au format ProblemDetail
+     */
     @ExceptionHandler(ConflictException.class)
     public ProblemDetail handleConflict(ConflictException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
@@ -56,29 +63,28 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
+    /**
+     * {@code 401} : identifiants refusés à la connexion, ou token valide d'un compte qui n'existe
+     * plus. Même titre dans les deux cas ; le message vient de l'exception.
+     *
+     * @param ex identifiants refusés ou compte inconnu
+     * @return l'erreur au format ProblemDetail
+     */
+    @ExceptionHandler({InvalidCredentialsException.class, UnknownUserException.class})
+    public ProblemDetail handleUnauthorized(RuntimeException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Authentification refusée");
         return problem;
     }
 
-    @ExceptionHandler(UnknownUserException.class)
-    public ProblemDetail handleUnknownUser(UnknownUserException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle("Authentification refusée");
-        return problem;
-    }
-
-    @ExceptionHandler(TopicNotFoundException.class)
-    public ProblemDetail handleTopicNotFound(TopicNotFoundException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Ressource introuvable");
-        return problem;
-    }
-
-    @ExceptionHandler(PostNotFoundException.class)
-    public ProblemDetail handlePostNotFound(PostNotFoundException ex) {
+    /**
+     * {@code 404} : thème ou article introuvable (ex. supprimé, ou identifiant inexistant).
+     *
+     * @param ex thème ou article introuvable
+     * @return l'erreur au format ProblemDetail
+     */
+    @ExceptionHandler({TopicNotFoundException.class, PostNotFoundException.class})
+    public ProblemDetail handleNotFound(RuntimeException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Ressource introuvable");
         return problem;

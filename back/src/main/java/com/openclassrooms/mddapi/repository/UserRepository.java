@@ -8,6 +8,11 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Accès aux comptes (Spring Data JPA) : recherche par e-mail ou nom d'utilisateur (sans tenir compte
+ * de la casse pour le nom), vérification d'unicité à l'inscription et à la modification du profil,
+ * et lecture des identifiants des thèmes suivis.
+ */
 public interface UserRepository extends JpaRepository<User, Long> {
 
     /** L'e-mail est enregistré en minuscules : la comparaison exacte suffit. */
