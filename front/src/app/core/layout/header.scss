@@ -70,7 +70,11 @@ img.header__logo {
   }
 }
 
-// Menu mobile : panneau collé à droite, pleine hauteur, profil en bas
+// Menu mobile : panneau collé à droite, pleine hauteur, profil en bas.
+// Commentaire de la maquette : il glisse depuis la droite à l'ouverture et y repart à la
+// fermeture, avec un overlay (fond assombri) qui le ferme au clic. L'overlay est le
+// ::backdrop natif du <dialog> ; « allow-discrete » laisse le temps à l'animation de
+// fermeture de se jouer avant que le navigateur ne masque le <dialog>.
 .header__menu {
   width: 70%;
   height: 100%;
@@ -79,9 +83,47 @@ img.header__logo {
   padding: 0;
   border: 0;
   border-left: var(--border-width) solid var(--color-border);
+  transform: translateX(100%);
+  transition:
+    transform var(--transition-duration) ease,
+    overlay var(--transition-duration) allow-discrete,
+    display var(--transition-duration) allow-discrete;
+
+  &[open] {
+    transform: translateX(0);
+  }
 
   &::backdrop {
     background: var(--color-backdrop);
+    opacity: 0;
+    transition:
+      opacity var(--transition-duration) ease,
+      overlay var(--transition-duration) allow-discrete,
+      display var(--transition-duration) allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+  }
+
+  // Point de départ de l'animation d'ouverture (sinon le panneau apparaîtrait déjà en place)
+  @starting-style {
+    &[open] {
+      transform: translateX(100%);
+    }
+
+    &[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  // Animation désactivée pour les personnes qui l'ont demandé dans leur système
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &::backdrop {
+      transition: none;
+    }
   }
 }
 
