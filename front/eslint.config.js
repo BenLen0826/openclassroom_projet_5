@@ -15,6 +15,9 @@ module.exports = defineConfig([
     ],
     processor: angular.processInlineTemplates,
     rules: {
+      // Aucun console.log : un token ou des données personnelles affichés dans la console du
+      // navigateur seraient visibles de tous (démo, capture d'écran). Seules les erreurs restent permises.
+      'no-console': ['error', { allow: ['error'] }],
       '@angular-eslint/directive-selector': [
         'error',
         {
