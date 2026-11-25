@@ -1,0 +1,34 @@
+@use 'breakpoints' as *;
+
+// Mobile : nom au-dessus, aligné à droite, puis la bulle.
+// Desktop : nom à gauche, bulle à droite (maquette).
+.comment-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+
+  @include desktop {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+}
+
+.comment-item__author {
+  align-self: flex-end;
+  font-weight: var(--font-weight-regular);
+
+  @include desktop {
+    align-self: auto;
+    flex: 0 0 20%;
+    text-align: right;
+  }
+}
+
+.comment-item__bubble {
+  flex: 1;
+  padding: var(--space-md);
+  white-space: pre-line;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+}

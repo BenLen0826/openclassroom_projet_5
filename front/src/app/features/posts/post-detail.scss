@@ -1,0 +1,59 @@
+@use 'breakpoints' as *;
+
+// Mobile : flèche et titre sur une ligne, puis le contenu sur toute la largeur.
+// Desktop : flèche dans la marge gauche ; titre, contenu et commentaires alignés à sa droite (maquette).
+.post-detail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'back title'
+    'body body';
+  column-gap: var(--space-md);
+  row-gap: var(--space-md);
+  align-items: start;
+
+  @include desktop {
+    grid-template-areas:
+      'back title'
+      '.    body';
+  }
+}
+
+.post-detail__back {
+  grid-area: back;
+}
+
+.post-detail__title {
+  grid-area: title;
+}
+
+.post-detail__body {
+  grid-area: body;
+  min-width: 0;
+
+  article {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+}
+
+// Date et auteur sur une ligne ; le thème passe dessous en mobile (maquette)
+.post-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-xl);
+  row-gap: var(--space-xs);
+
+  span:last-child {
+    flex-basis: 100%;
+
+    @include desktop {
+      flex-basis: auto;
+    }
+  }
+}
+
+.post-detail__content {
+  white-space: pre-line;
+}

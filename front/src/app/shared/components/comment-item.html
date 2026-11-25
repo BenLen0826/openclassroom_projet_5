@@ -1,5 +1,4 @@
-<!-- La « bulle » de contenu de la maquette arrive avec la mise en forme (étape 6) -->
-<p>
-  <strong>{{ comment().authorUsername }}</strong>
-  {{ comment().content }}
-</p>
+<div class="comment-item">
+  <strong class="comment-item__author">{{ comment().authorUsername }}</strong>
+  <p class="comment-item__bubble">{{ comment().content }}</p>
+</div>
