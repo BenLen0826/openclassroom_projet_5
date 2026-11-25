@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/** Articles : fil d'actualité, publication et consultation d'un article. */
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
@@ -39,6 +40,7 @@ public class PostController {
         return postService.create(CurrentUser.id(jwt), request);
     }
 
+    /** Un article, quel que soit son thème ; {@code 404} s'il n'existe pas. */
     @GetMapping("/{id}")
     public PostDto getById(@PathVariable Long id) {
         return postService.getById(id);

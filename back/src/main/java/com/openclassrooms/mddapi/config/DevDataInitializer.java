@@ -60,6 +60,7 @@ public class DevDataInitializer implements ApplicationRunner {
     private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** Ajoute les données de démonstration au démarrage, sauf si elles sont déjà présentes. */
     @Override
     @Transactional
     public void run(ApplicationArguments args) {

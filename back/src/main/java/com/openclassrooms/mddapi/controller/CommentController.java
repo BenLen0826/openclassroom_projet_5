@@ -27,12 +27,13 @@ public class CommentController {
 
     private final CommentService commentService;
 
+    /** Commentaires de l'article, du plus ancien au plus récent ; {@code 404} si l'article n'existe pas. */
     @GetMapping
     public List<CommentDto> getComments(@PathVariable Long postId) {
         return commentService.getForPost(postId);
     }
 
-    /** L'auteur est déduit du token, la date est mise par le serveur. */
+    /** Ajout d'un commentaire : l'auteur est déduit du token, la date est mise par le serveur. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CommentDto create(@AuthenticationPrincipal Jwt jwt, @PathVariable Long postId,

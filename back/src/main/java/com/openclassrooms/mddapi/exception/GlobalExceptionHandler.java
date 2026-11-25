@@ -46,6 +46,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problem, headers, status, request);
     }
 
+    /**
+     * {@code 409} : e-mail ou nom d'utilisateur déjà pris. Le champ concerné ({@code field}) est
+     * ajouté à la réponse, pour afficher le message sous le bon champ.
+     *
+     * @param ex conflit, avec le champ concerné s'il est connu
+     * @return l'erreur au format ProblemDetail
+     */
     @ExceptionHandler(ConflictException.class)
     public ProblemDetail handleConflict(ConflictException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());

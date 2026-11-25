@@ -16,6 +16,13 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    /**
+     * Autorise l'origine du front (propriété {@code mdd.cors.allowed-origin}) sur {@code /api/**},
+     * avec les méthodes et en-têtes utilisés par l'application.
+     *
+     * @param allowedOrigin origine autorisée (par défaut {@code http://localhost:4200})
+     * @return la configuration CORS appliquée par Spring Security
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
             @Value("${mdd.cors.allowed-origin}") String allowedOrigin) {

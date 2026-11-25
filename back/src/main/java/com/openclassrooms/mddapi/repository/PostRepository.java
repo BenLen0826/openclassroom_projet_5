@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+/** Accès aux articles (Spring Data JPA), dont la requête du fil d'actualité. */
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     /**

@@ -21,6 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
+/**
+ * Inscription et connexion : vérifie les identifiants, hache le mot de passe (BCrypt) et
+ * renvoie un token JWT. Aucune donnée personnelle n'est écrite dans les logs.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

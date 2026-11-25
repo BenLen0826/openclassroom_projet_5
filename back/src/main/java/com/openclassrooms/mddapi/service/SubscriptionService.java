@@ -26,6 +26,14 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final TopicRepository topicRepository;
 
+    /**
+     * Abonne l'utilisateur au thème ; sans effet s'il est déjà abonné.
+     *
+     * @throws UnknownUserException compte du token introuvable ({@code 401})
+     * @throws TopicNotFoundException thème inexistant ({@code 404})
+     * @throws DuplicateSubscriptionException même abonnement envoyé deux fois en même temps
+     *         (traité comme réussi, {@code 204})
+     */
     @Transactional
     public void subscribe(Long userId, Long topicId) {
         User user = findUser(userId);
@@ -44,6 +52,12 @@ public class SubscriptionService {
         }
     }
 
+    /**
+     * Désabonne l'utilisateur du thème ; sans effet s'il n'y était pas abonné.
+     *
+     * @throws UnknownUserException compte du token introuvable ({@code 401})
+     * @throws TopicNotFoundException thème inexistant ({@code 404})
+     */
     @Transactional
     public void unsubscribe(Long userId, Long topicId) {
         User user = findUser(userId);

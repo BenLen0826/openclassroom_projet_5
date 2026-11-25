@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 
+/** Thèmes : lecture de la liste, avec l'état d'abonnement de l'utilisateur connecté. */
 @Service
 @RequiredArgsConstructor
 public class TopicService {

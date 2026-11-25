@@ -21,12 +21,14 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
 
+    /** Abonnement à un thème ({@code 204}) ; déjà abonné : sans effet ; {@code 404} si le thème n'existe pas. */
     @PostMapping("/{topicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void subscribe(@AuthenticationPrincipal Jwt jwt, @PathVariable Long topicId) {
         subscriptionService.subscribe(CurrentUser.id(jwt), topicId);
     }
 
+    /** Désabonnement d'un thème ({@code 204}) ; {@code 404} si le thème n'existe pas. */
     @DeleteMapping("/{topicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unsubscribe(@AuthenticationPrincipal Jwt jwt, @PathVariable Long topicId) {
