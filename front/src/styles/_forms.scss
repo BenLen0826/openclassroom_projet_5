@@ -1,4 +1,4 @@
-// Champs de formulaire : label au-dessus, champ bordé de violet, aide et erreur en dessous.
+// Champs de formulaire : label au-dessus, champ bordé de violet, message d'erreur en dessous.
 .field {
   display: flex;
   flex-direction: column;
@@ -21,10 +21,6 @@
 }
 
 .field ::placeholder {
-  color: var(--color-text-muted);
-}
-
-.field__hint {
   color: var(--color-text-muted);
 }
 
